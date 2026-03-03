@@ -5,7 +5,8 @@ use Illuminate\Support\Facades\Route;
 Route::view('/', 'welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::livewire('dashboard', 'pages::admin.dashboard.index-dashboard')->name('dashboard');
+    Route::livewire('/admin/dashboard', 'admin::dashboard.index-dashboard')->name('dashboard');
+    Route::livewire('/admin/users', 'admin::users.index-users')->name('users.index');
 });
 
 require __DIR__.'/settings.php';
