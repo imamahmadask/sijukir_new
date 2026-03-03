@@ -1,95 +1,106 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
-    <head>
-        @include('partials.head')
-    </head>
-    <body class="min-h-screen bg-white dark:bg-zinc-800">
-        <flux:sidebar sticky collapsible="mobile" class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
-            <flux:sidebar.header>
-                <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
-                <flux:sidebar.collapse class="lg:hidden" />
-            </flux:sidebar.header>
+<nav class="pc-sidebar">
+    <div class="navbar-wrapper">
+        <div class="m-header">
+            <a href="../dashboard/index.html" class="b-brand text-primary">
+                <!-- ========   Change your logo from here   ============ -->
+                <img src="../assets/images/logo-dark.svg" class="img-fluid logo-lg" alt="logo">
+            </a>
+        </div>
+        <div class="navbar-content">
+            <ul class="pc-navbar">
+                <li class="pc-item">
+                <a href="../dashboard/index.html" class="pc-link">
+                    <span class="pc-micon"><i class="ti ti-dashboard"></i></span>
+                    <span class="pc-mtext">Dashboard</span>
+                </a>
+                </li>
 
-            <flux:sidebar.nav>
-                <flux:sidebar.group :heading="__('Platform')" class="grid">
-                    <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
-                        {{ __('Dashboard') }}
-                    </flux:sidebar.item>
-                </flux:sidebar.group>
-            </flux:sidebar.nav>
+                <li class="pc-item pc-caption">
+                    <label>UI Components</label>
+                    <i class="ti ti-dashboard"></i>
+                </li>
+                <li class="pc-item">
+                    <a href="../elements/bc_typography.html" class="pc-link">
+                        <span class="pc-micon"><i class="ti ti-typography"></i></span>
+                        <span class="pc-mtext">Typography</span>
+                    </a>
+                </li>
+                <li class="pc-item">
+                    <a href="../elements/bc_color.html" class="pc-link">
+                        <span class="pc-micon"><i class="ti ti-color-swatch"></i></span>
+                        <span class="pc-mtext">Color</span>
+                    </a>
+                </li>
+                <li class="pc-item">
+                    <a href="../elements/icon-tabler.html" class="pc-link">
+                        <span class="pc-micon"><i class="ti ti-plant-2"></i></span>
+                        <span class="pc-mtext">Icons</span>
+                    </a>
+                </li>
 
-            <flux:spacer />
+                <li class="pc-item pc-caption">
+                    <label>Pages</label>
+                    <i class="ti ti-news"></i>
+                </li>
+                <li class="pc-item">
+                    <a href="../pages/login.html" class="pc-link">
+                        <span class="pc-micon"><i class="ti ti-lock"></i></span>
+                        <span class="pc-mtext">Login</span>
+                    </a>
+                </li>
+                <li class="pc-item">
+                    <a href="../pages/register.html" class="pc-link">
+                        <span class="pc-micon"><i class="ti ti-user-plus"></i></span>
+                        <span class="pc-mtext">Register</span>
+                    </a>
+                </li>
 
-            <flux:sidebar.nav>
-                <flux:sidebar.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">
-                    {{ __('Repository') }}
-                </flux:sidebar.item>
-
-                <flux:sidebar.item icon="book-open-text" href="https://laravel.com/docs/starter-kits#livewire" target="_blank">
-                    {{ __('Documentation') }}
-                </flux:sidebar.item>
-            </flux:sidebar.nav>
-
-            <x-desktop-user-menu class="hidden lg:block" :name="auth()->user()->name" />
-        </flux:sidebar>
-
-        <!-- Mobile User Menu -->
-        <flux:header class="lg:hidden">
-            <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
-
-            <flux:spacer />
-
-            <flux:dropdown position="top" align="end">
-                <flux:profile
-                    :initials="auth()->user()->initials()"
-                    icon-trailing="chevron-down"
-                />
-
-                <flux:menu>
-                    <flux:menu.radio.group>
-                        <div class="p-0 text-sm font-normal">
-                            <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
-                                <flux:avatar
-                                    :name="auth()->user()->name"
-                                    :initials="auth()->user()->initials()"
-                                />
-
-                                <div class="grid flex-1 text-start text-sm leading-tight">
-                                    <flux:heading class="truncate">{{ auth()->user()->name }}</flux:heading>
-                                    <flux:text class="truncate">{{ auth()->user()->email }}</flux:text>
-                                </div>
-                            </div>
-                        </div>
-                    </flux:menu.radio.group>
-
-                    <flux:menu.separator />
-
-                    <flux:menu.radio.group>
-                        <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>
-                            {{ __('Settings') }}
-                        </flux:menu.item>
-                    </flux:menu.radio.group>
-
-                    <flux:menu.separator />
-
-                    <form method="POST" action="{{ route('logout') }}" class="w-full">
-                        @csrf
-                        <flux:menu.item
-                            as="button"
-                            type="submit"
-                            icon="arrow-right-start-on-rectangle"
-                            class="w-full cursor-pointer"
-                            data-test="logout-button"
-                        >
-                            {{ __('Log out') }}
-                        </flux:menu.item>
-                    </form>
-                </flux:menu>
-            </flux:dropdown>
-        </flux:header>
-
-        {{ $slot }}
-
-        @fluxScripts
-    </body>
-</html>
+                <li class="pc-item pc-caption">
+                    <label>Other</label>
+                    <i class="ti ti-brand-chrome"></i>
+                </li>
+                <li class="pc-item pc-hasmenu">
+                    <a href="#!" class="pc-link"><span class="pc-micon"><i class="ti ti-menu"></i></span><span class="pc-mtext">Menu
+                        levels</span><span class="pc-arrow"><i data-feather="chevron-right"></i></span></a>
+                    <ul class="pc-submenu">
+                        <li class="pc-item"><a class="pc-link" href="#!">Level 2.1</a></li>
+                        <li class="pc-item pc-hasmenu">
+                            <a href="#!" class="pc-link">Level 2.2<span class="pc-arrow"><i data-feather="chevron-right"></i></span></a>
+                            <ul class="pc-submenu">
+                                <li class="pc-item"><a class="pc-link" href="#!">Level 3.1</a></li>
+                                <li class="pc-item"><a class="pc-link" href="#!">Level 3.2</a></li>
+                                <li class="pc-item pc-hasmenu">
+                                    <a href="#!" class="pc-link">Level 3.3<span class="pc-arrow"><i data-feather="chevron-right"></i></span></a>
+                                    <ul class="pc-submenu">
+                                        <li class="pc-item"><a class="pc-link" href="#!">Level 4.1</a></li>
+                                        <li class="pc-item"><a class="pc-link" href="#!">Level 4.2</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="pc-item pc-hasmenu">
+                            <a href="#!" class="pc-link">Level 2.3<span class="pc-arrow"><i data-feather="chevron-right"></i></span></a>
+                            <ul class="pc-submenu">
+                                <li class="pc-item"><a class="pc-link" href="#!">Level 3.1</a></li>
+                                <li class="pc-item"><a class="pc-link" href="#!">Level 3.2</a></li>
+                                <li class="pc-item pc-hasmenu">
+                                    <a href="#!" class="pc-link">Level 3.3<span class="pc-arrow"><i data-feather="chevron-right"></i></span></a>
+                                    <ul class="pc-submenu">
+                                        <li class="pc-item"><a class="pc-link" href="#!">Level 4.1</a></li>
+                                        <li class="pc-item"><a class="pc-link" href="#!">Level 4.2</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li class="pc-item">
+                    <a href="../other/sample-page.html" class="pc-link">
+                        <span class="pc-micon"><i class="ti ti-brand-chrome"></i></span>
+                        <span class="pc-mtext">Sample page</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

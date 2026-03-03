@@ -44,7 +44,7 @@ return [
     |
     */
 
-    'component_layout' => 'layouts::app',
+    'component_layout' => 'layouts.app',
 
     /*
     |---------------------------------------------------------------------------
@@ -234,7 +234,7 @@ return [
     |
     */
 
-    'pagination_theme' => 'tailwind',
+    'pagination_theme' => 'bootstrap',
 
     /*
     |---------------------------------------------------------------------------
