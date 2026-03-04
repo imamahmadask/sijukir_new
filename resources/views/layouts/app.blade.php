@@ -230,10 +230,14 @@
                                         <i class="ti ti-wallet"></i>
                                         <span>Billing</span>
                                     </a>
-                                    <a href="#!" class="dropdown-item">
-                                        <i class="ti ti-power"></i>
-                                        <span>Logout</span>
-                                    </a>
+                                    <form method="POST" action="{{ route('logout') }}">
+                                        @csrf
+                                        <a href="{{ route('logout') }}" class="dropdown-item" onclick="event.preventDefault();
+                                    this.closest('form').submit();">
+                                            <i class="ti ti-power"></i>
+                                            <span>Logout</span>
+                                        </a>
+                                    </form>
                                 </div>
                                 <div class="tab-pane fade" id="drp-tab-2" role="tabpanel" aria-labelledby="drp-t2"
                                     tabindex="0">

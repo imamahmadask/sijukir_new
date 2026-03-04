@@ -16,42 +16,70 @@
                 </li>
 
                 <li class="pc-item pc-caption">
-                    <label>UI Components</label>
+                    <label>Data</label>
                     <i class="ti ti-dashboard"></i>
                 </li>
                 <li class="pc-item">
                     <a href="../elements/bc_typography.html" class="pc-link">
-                        <span class="pc-micon"><i class="ti ti-typography"></i></span>
-                        <span class="pc-mtext">Typography</span>
+                        <span class="pc-micon"><i class="ti ti-bell"></i></span>
+                        <span class="pc-mtext">Notifikasi</span>
+                    </a>
+                </li>                
+                <li class="pc-item pc-hasmenu">
+                    <a href="#!" class="pc-link"><span class="pc-micon"><i class="ti ti-chart-line"></i></span><span class="pc-mtext">
+                        Analisa</span><span class="pc-arrow"><i data-feather="chevron-right"></i></span></a>
+                    <ul class="pc-submenu">
+                        <li class="pc-item"><a class="pc-link" href="#!">Analisa Jukir</a></li>
+                        <li class="pc-item"><a class="pc-link" href="#!">Analisa Bulanan</a></li>
+                        <li class="pc-item"><a class="pc-link" href="#!">Analisa Tahunan</a></li>
+                        <li class="pc-item"><a class="pc-link" href="#!">Analisa Potensi</a></li>
+                        <li class="pc-item"><a class="pc-link" href="#!">Analisa Titik</a></li>                                                                                        
+                    </ul>
+                </li>
+
+                <li class="pc-item pc-caption">
+                    <label>Parkir</label>
+                    <i class="ti ti-dashboard"></i>
+                </li>
+                <li class="pc-item">
+                    <a href="../elements/bc_typography.html" class="pc-link">
+                        <span class="pc-micon"><i class="ti ti-map-pin"></i></span>
+                        <span class="pc-mtext">Titik Parkir</span>
                     </a>
                 </li>
                 <li class="pc-item">
                     <a href="../elements/bc_color.html" class="pc-link">
-                        <span class="pc-micon"><i class="ti ti-color-swatch"></i></span>
-                        <span class="pc-mtext">Color</span>
+                        <span class="pc-micon"><i class="ti ti-user"></i></span>
+                        <span class="pc-mtext">Juru Parkir</span>
                     </a>
-                </li>
-                <li class="pc-item">
-                    <a href="../elements/icon-tabler.html" class="pc-link">
-                        <span class="pc-micon"><i class="ti ti-plant-2"></i></span>
-                        <span class="pc-mtext">Icons</span>
-                    </a>
-                </li>
+                </li>                
 
                 <li class="pc-item pc-caption">
-                    <label>Pages</label>
+                    <label>Transaksi</label>
                     <i class="ti ti-news"></i>
                 </li>
                 <li class="pc-item">
                     <a href="../pages/login.html" class="pc-link">
-                        <span class="pc-micon"><i class="ti ti-lock"></i></span>
-                        <span class="pc-mtext">Login</span>
+                        <span class="pc-micon"><i class="ti ti-cash"></i></span>
+                        <span class="pc-mtext">Tunai</span>
                     </a>
                 </li>
                 <li class="pc-item">
                     <a href="../pages/register.html" class="pc-link">
-                        <span class="pc-micon"><i class="ti ti-user-plus"></i></span>
-                        <span class="pc-mtext">Register</span>
+                        <span class="pc-micon"><i class="ti ti-wallet"></i></span>
+                        <span class="pc-mtext">Non Tunai</span>
+                    </a>
+                </li>
+                <li class="pc-item">
+                    <a href="../pages/register.html" class="pc-link">
+                        <span class="pc-micon"><i class="ti ti-ticket"></i></span>
+                        <span class="pc-mtext">Berlangganan</span>
+                    </a>
+                </li>
+                <li class="pc-item">
+                    <a href="../pages/register.html" class="pc-link">
+                        <span class="pc-micon"><i class="ti ti-box"></i></span>
+                        <span class="pc-mtext">Insidentil</span>
                     </a>
                 </li>
 
@@ -60,11 +88,37 @@
                     <i class="ti ti-brand-chrome"></i>
                 </li>
                 <li class="pc-item">
+                    <a href="#" class="pc-link">
+                        <span class="pc-micon"><i class="ti ti-shopping-cart"></i></span>
+                        <span class="pc-mtext">Merchant</span>
+                    </a>
+                </li>
+                <li class="pc-item">
+                    <a href="#" class="pc-link">
+                        <span class="pc-micon"><i class="ti ti-users"></i></span>
+                        <span class="pc-mtext">Korlap</span>
+                    </a>
+                </li>
+                <li class="pc-item">
+                    <a href="#" class="pc-link">
+                        <span class="pc-micon"><i class="ti ti-urgent"></i></span>
+                        <span class="pc-mtext">Pengaduan</span>
+                    </a>
+                </li>
+                <li class="pc-item">
+                    <a href="#" class="pc-link">
+                        <span class="pc-micon"><i class="ti ti-notes"></i></span>
+                        <span class="pc-mtext">Peringatan</span>
+                    </a>
+                </li>
+                @if(auth()->user()->role === 'superadmin')
+                <li class="pc-item">
                     <a href="{{ route('users.index') }}" class="pc-link">
                         <span class="pc-micon"><i class="ti ti-users"></i></span>
                         <span class="pc-mtext">Users</span>
                     </a>
                 </li>
+                @endif
             </ul>
         </div>
     </div>
