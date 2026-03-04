@@ -93,12 +93,14 @@
                         <span class="pc-mtext">Merchant</span>
                     </a>
                 </li>
+                @if(in_array(auth()->user()->role, ['superadmin', 'admin']))
                 <li class="pc-item">
-                    <a href="#" class="pc-link">
+                    <a href="{{ route('korlap.index') }}" class="pc-link">
                         <span class="pc-micon"><i class="ti ti-users"></i></span>
                         <span class="pc-mtext">Korlap</span>
                     </a>
                 </li>
+                @endif
                 <li class="pc-item">
                     <a href="#" class="pc-link">
                         <span class="pc-micon"><i class="ti ti-urgent"></i></span>

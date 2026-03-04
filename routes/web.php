@@ -12,4 +12,8 @@ Route::middleware(['cekRole:superadmin'])->group(function () {
     Route::livewire('/admin/users', 'admin::users.index-users')->name('users.index');
 });
 
+Route::middleware(['cekRole:superadmin,admin'])->group(function () {
+    Route::livewire('/admin/korlap', 'admin::korlap.index-korlap')->name('korlap.index');
+});
+
 require __DIR__.'/settings.php';
