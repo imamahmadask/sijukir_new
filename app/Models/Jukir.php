@@ -56,4 +56,9 @@ class Jukir extends Model
     {
         return $this->belongsTo(Area::class);
     }    
+
+    public function merchant()
+    {
+        return $this->belongsTo(Merchant::class, 'merchant_id');
+    }
 }

@@ -28,4 +28,9 @@ class Area extends Model
     {
         return $this->hasMany(Lokasi::class);
     }   
+
+    public function merchants()
+    {
+        return $this->hasMany(Merchant::class);
+    }
 }
