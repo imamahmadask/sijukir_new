@@ -1,9 +1,10 @@
 <nav class="pc-sidebar">
     <div class="navbar-wrapper">
         <div class="m-header">
-            <a href="{{ route('dashboard') }}" class="b-brand text-primary">
+            <a href="{{ route('dashboard') }}" class="b-brand text-primary fs-2 fw-bold">
                 <!-- ========   Change your logo from here   ============ -->
-                <img src="../assets/images/logo-dark.svg" class="img-fluid logo-lg" alt="logo">
+                {{-- <img src="../assets/images/logo-dark.svg" class="img-fluid logo-lg" alt="logo"> --}}
+                SIJUKIR
             </a>
         </div>
         <div class="navbar-content">
