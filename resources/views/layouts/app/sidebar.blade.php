@@ -9,7 +9,7 @@
         </div>
         <div class="navbar-content">
             <ul class="pc-navbar">
-                <li class="pc-item">
+                <li class="pc-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                     <a href="{{ route('dashboard') }}" class="pc-link">
                         <span class="pc-micon"><i class="ti ti-dashboard"></i></span>
                         <span class="pc-mtext">Dashboard</span>
@@ -42,14 +42,14 @@
                     <label>Parkir</label>
                     <i class="ti ti-dashboard"></i>
                 </li>
-                <li class="pc-item">
+                <li class="pc-item {{ request()->routeIs('lokasi.*') ? 'active' : '' }}">
                     <a href="{{ route('lokasi.index') }}" class="pc-link">
                         <span class="pc-micon"><i class="ti ti-map-pin"></i></span>
                         <span class="pc-mtext">Titik Parkir</span>
                     </a>
                 </li>
-                <li class="pc-item">
-                    <a href="../elements/bc_color.html" class="pc-link">
+                <li class="pc-item {{ request()->routeIs('jukir.*') ? 'active' : '' }}">
+                    <a href="{{ route('jukir.index') }}" class="pc-link">
                         <span class="pc-micon"><i class="ti ti-user"></i></span>
                         <span class="pc-mtext">Juru Parkir</span>
                     </a>
@@ -95,7 +95,7 @@
                     </a>
                 </li>
                 @if(in_array(auth()->user()->role, ['superadmin', 'admin']))
-                <li class="pc-item">
+                <li class="pc-item {{ request()->routeIs('korlap.index') ? 'active' : '' }}">
                     <a href="{{ route('korlap.index') }}" class="pc-link">
                         <span class="pc-micon"><i class="ti ti-users"></i></span>
                         <span class="pc-mtext">Korlap</span>
@@ -114,11 +114,11 @@
                         <span class="pc-mtext">Peringatan</span>
                     </a>
                 </li>
-                @if(auth()->user()->role === 'superadmin')
-                <li class="pc-item">
+                @if(auth()->user()->role == 'superadmin')
+                <li class="pc-item {{ request()->routeIs('users.index') ? 'active' : '' }}">
                     <a href="{{ route('users.index') }}" class="pc-link">
-                        <span class="pc-micon"><i class="ti ti-users"></i></span>
-                        <span class="pc-mtext">Users</span>
+                        <span class="pc-micon"><i class="ti ti-user-plus"></i></span>
+                        <span class="pc-mtext">User Management</span>
                     </a>
                 </li>
                 @endif

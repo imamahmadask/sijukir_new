@@ -19,6 +19,11 @@ Route::middleware(['cekRole:superadmin,admin'])->group(function () {
     Route::livewire('/admin/lokasi/create', 'admin::lokasi.create-lokasi')->name('lokasi.create');
     Route::livewire('/admin/lokasi/{id}/edit', 'admin::lokasi.edit-lokasi')->name('lokasi.edit');
     Route::livewire('/admin/lokasi/{id}/detail', 'admin::lokasi.detail-lokasi')->name('lokasi.detail');
+
+    Route::livewire('/admin/jukir', 'admin::jukir.index-jukir')->name('jukir.index');
+    Route::livewire('/admin/jukir/create', 'admin::jukir.create-jukir')->name('jukir.create');
+    Route::livewire('/admin/jukir/{id}/edit', 'admin::jukir.edit-jukir')->name('jukir.edit');
+    Route::livewire('/admin/jukir/{id}/detail', 'admin::jukir.detail-jukir')->name('jukir.detail');
 });
 
 require __DIR__.'/settings.php';

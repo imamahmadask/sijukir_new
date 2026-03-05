@@ -18,4 +18,14 @@ class Area extends Model
     {
         return $this->hasMany(Kelurahan::class);
     }
+
+    public function jukirs()
+    {
+        return $this->hasMany(Jukir::class);
+    }
+
+    public function lokasis()
+    {
+        return $this->hasMany(Lokasi::class);
+    }   
 }

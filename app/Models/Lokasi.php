@@ -53,4 +53,9 @@ class Lokasi extends Model
     {
         return $this->belongsTo(Korlap::class);
     }
+
+    public function jukirs()
+    {
+        return $this->hasMany(Jukir::class);
+    }
 }
