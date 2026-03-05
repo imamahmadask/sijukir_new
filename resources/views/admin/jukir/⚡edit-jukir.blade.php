@@ -3,6 +3,7 @@
 use Livewire\Component;
 use App\Models\Jukir;
 use App\Models\Lokasi;
+use App\Models\Merchant;
 use Carbon\Carbon;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Str;
@@ -25,8 +26,8 @@ new class extends Component {
     public $kab_kota_alamat = '';
     public $telepon = '';
     public $agama = '';
-    public $jenis_jukir = 'Jukir Utama';
-    public $status = 'Tunai';
+    public $jenis_jukir = '';
+    public $status = '';
     public $foto;
     public $oldFoto;
     public $lokasi_id = '';
@@ -38,7 +39,7 @@ new class extends Component {
     public $tgl_perjanjian = '';
     public $potensi_harian = '';
     public $potensi_bulanan = '';
-    public $ket_jukir = 'Pending';
+    public $ket_jukir = '';
     public $tgl_terbit_qr = '';
     public $hari_libur = [];
     public $jml_hari_kerja = '';
@@ -48,8 +49,10 @@ new class extends Component {
     public $uji_petik = '';
     public $tgl_pkh_upl = '';
     public $potensi_bulanan_upl = '';
+    public $tgl_nonactive = '';
 
     public $lokasis = [];
+    public $merchants = [];
 
     public function mount($id)
     {
@@ -67,8 +70,8 @@ new class extends Component {
         $this->kab_kota_alamat  = $jukir->kab_kota_alamat;
         $this->telepon          = $jukir->telepon;
         $this->agama            = $jukir->agama;
-        $this->jenis_jukir      = $jukir->jenis_jukir ?? 'Jukir Utama';
-        $this->status           = $jukir->status ?? 'Tunai';
+        $this->jenis_jukir      = $jukir->jenis_jukir;
+        $this->status           = $jukir->status;
         $this->oldFoto          = $jukir->foto;
         $this->lokasi_id        = $jukir->lokasi_id;
         $this->oldDocument      = $jukir->document;
@@ -78,7 +81,7 @@ new class extends Component {
         $this->tgl_perjanjian   = $jukir->tgl_perjanjian;
         $this->potensi_harian   = $jukir->potensi_harian;
         $this->potensi_bulanan  = $jukir->potensi_bulanan;
-        $this->ket_jukir        = $jukir->ket_jukir ?? 'Pending';
+        $this->ket_jukir        = $jukir->ket_jukir;
         $this->tgl_terbit_qr    = $jukir->tgl_terbit_qr;
         $this->hari_libur       = json_decode($jukir->hari_libur, true) ?? [];
         $this->jml_hari_kerja   = $jukir->jml_hari_kerja;
@@ -88,8 +91,11 @@ new class extends Component {
         $this->uji_petik        = $jukir->uji_petik;
         $this->tgl_pkh_upl      = $jukir->tgl_pkh_upl;
         $this->potensi_bulanan_upl = $jukir->potensi_bulanan_upl;
+        $this->tgl_nonactive    = $jukir->tgl_nonactive;
 
         $this->lokasis = Lokasi::all();
+        $this->merchants = Merchant::all();
+        // dd($this->merchants);
     }
 
     public function save()
@@ -151,7 +157,9 @@ new class extends Component {
             'hari_kerja_bulan'  => $this->hari_kerja_bulan,
             'waktu_kerja'       => $this->waktu_kerja,
             'hari_libur'        => json_encode($this->hari_libur),
-            'area_id'           => $this->area_id
+            'area_id'           => $this->area_id,
+            'tgl_nonactive'     => $this->tgl_nonactive,
+            'merchant_id'       => $this->merchant_id
         ];
 
         if ($this->foto) {
@@ -306,18 +314,13 @@ new class extends Component {
                             <div class="col-md-4 mb-3">
                                 <label class="form-label">Tgl Perjanjian</label>
                                 <input type="date" class="form-control" wire:model="tgl_perjanjian">
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Tgl Terbit QR</label>
-                                <input type="date" class="form-control" wire:model="tgl_terbit_qr">
-                                @error('tgl_terbit_qr') <small class="text-danger">{{ $message }}</small> @enderror
-                            </div>
-                            <div class="col-md-4 mb-3">
+                            </div>                            
+                            <div class="col-md-6 mb-3">
                                 <label class="form-label">Jumlah Hari Kerja (Seminggu)</label>
                                 <input type="number" class="form-control" wire:model="jml_hari_kerja">
                                 @error('jml_hari_kerja') <small class="text-danger">{{ $message }}</small> @enderror
                             </div>                            
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-6 mb-3">
                                 <label class="form-label">Jumlah Hari Kerja (Sebulan)</label>
                                 <input type="number" class="form-control" wire:model="hari_kerja_bulan">
                                 @error('hari_kerja_bulan') <small class="text-danger">{{ $message }}</small> @enderror
@@ -378,6 +381,57 @@ new class extends Component {
                             @endif
                         </div>                       
 
+                        <h6 class="mb-3 mt-4 text-primary">QR Code</h6>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" wire:model.live="status">
+                                    <option value="">--Pilih Status--</option>
+                                    <option value="Tunai">Tunai</option>
+                                    <option value="Non Tunai">Non Tunai</option>
+                                </select>
+                                @error('status') <small class="text-danger">{{ $message }}</small> @enderror
+                            </div>
+                            @if($status == 'Non Tunai')
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Merchant</label>
+                                    <select class="form-select" wire:model="merchant_id">
+                                        <option value="">-- Pilih Merchant --</option>
+                                        @foreach($merchants as $merchant)
+                                            <option value="{{ $merchant->id }}">{{ $merchant->merchant_name }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('merchant_id') <small class="text-danger">{{ $message }}</small> @enderror
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Tgl Terbit QR</label>
+                                    <input type="date" class="form-control" wire:model="tgl_terbit_qr">
+                                    @error('tgl_terbit_qr') <small class="text-danger">{{ $message }}</small> @enderror
+                                </div>
+                            @endif
+                        </div>
+
+                        <h6 class="mb-3 mt-4 text-primary">Keterangan</h6>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Keterangan</label>
+                                <select class="form-select" wire:model.live="ket_jukir">
+                                    <option value="">--Pilih Status--</option>
+                                    <option value="Active">Active</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Non Active">Non Active</option>
+                                </select>
+                                @error('ket_jukir') <small class="text-danger">{{ $message }}</small> @enderror
+                            </div>
+                            @if($ket_jukir == 'Non Active')
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Tgl Non Aktif</label>
+                                    <input type="date" class="form-control" wire:model="tgl_nonactive">
+                                    @error('tgl_nonactive') <small class="text-danger">{{ $message }}</small> @enderror
+                                </div>
+                            @endif
+                        </div>
+
                         <!-- Berkas -->
                         <h6 class="mb-3 mt-4 text-primary">Berkas & Foto</h6>
                         <div class="row">
@@ -404,11 +458,7 @@ new class extends Component {
                                         </a>
                                     </div>
                                 @endif
-                            </div>
-                            <div class="col-md-12 mb-3">
-                                <label class="form-label">Keterangan</label>
-                                <textarea class="form-control" wire:model="ket_jukir" rows="2"></textarea>
-                            </div>
+                            </div>                            
                         </div>
                     </div>
                     <div class="card-footer text-end">

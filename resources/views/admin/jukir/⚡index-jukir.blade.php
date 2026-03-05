@@ -103,14 +103,15 @@ new class extends Component {
                                         <td>{{ $item->lokasi->titik_parkir ?? '-' }}</td>
                                         <td>{{ $item->telepon ?? '-' }}</td>
                                         <td>
-                                            @php
-                                                $badgeClass = 'secondary';
-                                                if ($item->status === 'Non-Tunai') $badgeClass = 'success';
-                                                elseif ($item->status === 'Tunai') $badgeClass = 'warning';
-                                            @endphp
-                                            <span class="badge bg-light-{{ $badgeClass }}">
-                                                {{ $item->status ?? '-' }}
-                                            </span>
+                                            @if($item->status === 'Non Tunai')
+                                                <span class="badge bg-light-success">
+                                                    {{ $item->status ?? '-' }}
+                                                </span>
+                                            @elseif($item->status === 'Tunai')
+                                                <span class="badge bg-light-warning">
+                                                    {{ $item->status ?? '-' }}
+                                                </span>
+                                            @endif
                                         </td>
                                         <td>
                                             @if($item->ket_jukir === 'Active')

@@ -60,9 +60,9 @@ new class extends Component {
                             <div class="flex-grow-1 mb-4">
                                 <h3 class="mb-1 fw-bold text-dark">{{ $jukir->nama_jukir }}</h3>
                                 <div class="d-flex align-items-center flex-wrap">
-                                    <span class="text-muted me-3 mb-1"><i class="ti ti-id me-1"></i>{{ $jukir->kode_jukir ?? '-' }}</span>
-                                    <span class="text-muted me-3 mb-1"><i class="ti ti-barcode me-1"></i>{{ $jukir->nik_jukir }}</span>
-                                    <span class="text-muted me-3 mb-1"><i class="ti ti-phone me-1"></i>{{ $jukir->telepon ?? '-' }}</span>
+                                    @if($jukir->status == 'Non Tunai')
+                                    <span class="text-muted me-3 mb-1"><i class="ti ti-id me-1"></i>{{ $jukir->merchant->merchant_name ?? '-' }}</span>
+                                    @endif  
                                 </div>
                             </div>
                             <div class="mb-4 text-end">
@@ -78,7 +78,7 @@ new class extends Component {
                                     </span>
                                     
                                     @php
-                                        $statusClass = $jukir->status == 'Non-Tunai' ? 'success' : 'warning';
+                                        $statusClass = $jukir->status == 'Non Tunai' ? 'success' : 'warning';
                                     @endphp
                                     <span class="badge bg-light-{{ $statusClass }} fs-6 px-3 py-2 border border-{{ $statusClass }} ms-2">
                                         <i class="ti ti-wallet me-1"></i>{{ $jukir->status ?? 'Tunai' }}
@@ -125,11 +125,14 @@ new class extends Component {
                         <div class="card-body p-4">
                             <div class="d-flex align-items-center">
                                 <div class="avtar avtar-l bg-white bg-opacity-25 text-white me-3">
-                                    <i class="ti ti-map-2 fs-1"></i>
+                                    <a href="{{ route('lokasi.detail', $jukir->lokasi->id) }}" class="text-white" target="_blank">
+                                        <i class="ti ti-map-2 fs-1"></i>
+                                    </a>
                                 </div>
                                 <div class="flex-grow-1 text-truncate">
                                     <h6 class="mb-0 text-white-50">Titik Penugasan</h6>
                                     <h4 class="mb-0 text-white fw-bold">{{ Str::limit($jukir->lokasi->titik_parkir ?? '-', 22) }}</h4>
+                                    <h5 class="mb-0 text-white fw-bold">{{ $jukir->lokasi->lokasi_parkir ?? '-' }}</h5>
                                 </div>
                             </div>
                         </div>
