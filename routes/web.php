@@ -26,6 +26,8 @@ Route::middleware(['cekRole:superadmin,admin'])->group(function () {
     Route::livewire('/admin/jukir/{id}/detail', 'admin::jukir.detail-jukir')->name('jukir.detail');
 
     Route::livewire('/admin/merchant', 'admin::merchant.index-merchant')->name('merchant.index');
+
+    Route::livewire('/admin/transaksi/tunai', 'admin::transaksi-tunai.index-transaksi-tunai')->name('transaksi.tunai.index');
 });
 
 require __DIR__.'/settings.php';

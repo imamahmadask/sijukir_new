@@ -388,11 +388,11 @@ new class extends Component {
                                 <select class="form-select" wire:model.live="status">
                                     <option value="">--Pilih Status--</option>
                                     <option value="Tunai">Tunai</option>
-                                    <option value="Non Tunai">Non Tunai</option>
+                                    <option value="Non-Tunai">Non-Tunai</option>
                                 </select>
                                 @error('status') <small class="text-danger">{{ $message }}</small> @enderror
                             </div>
-                            @if($status == 'Non Tunai')
+                            @if($status == 'Non-Tunai')
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label">Merchant</label>
                                     <select class="form-select" wire:model="merchant_id">
@@ -416,9 +416,9 @@ new class extends Component {
                             <div class="col-md-4 mb-3">
                                 <label class="form-label">Keterangan</label>
                                 <select class="form-select" wire:model.live="ket_jukir">
-                                    <option value="">--Pilih Status--</option>
+                                    <option value="">--Pilih Keterangan--</option>
+                                    {{-- <option value="Pending">Pending</option> --}}
                                     <option value="Active">Active</option>
-                                    <option value="Pending">Pending</option>
                                     <option value="Non Active">Non Active</option>
                                 </select>
                                 @error('ket_jukir') <small class="text-danger">{{ $message }}</small> @enderror

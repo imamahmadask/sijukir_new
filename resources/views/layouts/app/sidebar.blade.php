@@ -59,8 +59,8 @@
                     <label>Transaksi</label>
                     <i class="ti ti-news"></i>
                 </li>
-                <li class="pc-item">
-                    <a href="../pages/login.html" class="pc-link">
+                <li class="pc-item {{ request()->routeIs('transaksi.tunai.*') ? 'active' : '' }}">
+                    <a href="{{ route('transaksi.tunai.index') }}" class="pc-link">
                         <span class="pc-micon"><i class="ti ti-cash"></i></span>
                         <span class="pc-mtext">Tunai</span>
                     </a>
