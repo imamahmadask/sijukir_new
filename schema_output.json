@@ -1,0 +1,22 @@
+{
+    "history_jukirs": [],
+    "jukir_pembantu": [
+        "id",
+        "nama",
+        "nik",
+        "alamat",
+        "kel_alamat",
+        "kec_alamat",
+        "kab_kota_alamat",
+        "telepon",
+        "tempat_lahir",
+        "tgl_lahir",
+        "jenis_kelamin",
+        "agama",
+        "foto",
+        "status",
+        "jukir_id",
+        "created_at",
+        "updated_at"
+    ]
+}

@@ -75,11 +75,10 @@ new class extends Component {
                             <thead>
                                 <tr>
                                     <th>#</th>
-                                    <th>Foto</th>
                                     <th>Nama Jukir</th>
-                                    <th>NIK</th>
                                     <th>Lokasi Parkir</th>
-                                    <th>Telepon</th>
+                                    <th>Area</th>
+                                    <th>Korlap</th>
                                     <th>Status</th>
                                     <th>Ket.</th>
                                     <th width="150">Aksi</th>
@@ -88,27 +87,25 @@ new class extends Component {
                             <tbody>
                                 @forelse ($jukirs as $index => $item)
                                     <tr wire:key="jukir-{{ $item->id }}">
-                                        <td>{{ $index + 1 }}</td>
+                                        <td>{{ $index + 1 }}</td>                                        
                                         <td>
-                                            @if($item->foto)
-                                                <img src="{{ asset('storage/' . $item->foto) }}" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
-                                            @else
-                                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                                    <i class="ti ti-user text-muted"></i>
-                                                </div>
-                                            @endif
+                                            <span class="fw-bold">{{ $item->nama_jukir }}</span>
+                                            <br>
+                                            <small class="text-muted fst-italic">{{ $item->merchant->merchant_name ?? '-' }}</small>
                                         </td>
-                                        <td>{{ $item->nama_jukir }}</td>
-                                        <td>{{ $item->nik_jukir }}</td>
-                                        <td>{{ $item->lokasi->titik_parkir ?? '-' }}</td>
-                                        <td>{{ $item->telepon ?? '-' }}</td>
                                         <td>
-                                            @if($item->status === 'Non Tunai')
-                                                <span class="badge bg-light-success">
+                                            <span class="fw-bold">{{ $item->lokasi->titik_parkir ?? '-' }}</span> <br>
+                                            <small class="text-muted fst-italic">{{ $item->lokasi->lokasi_parkir ?? '-' }}</small>
+                                        </td>
+                                        <td>{{ $item->lokasi->area->Kecamatan }}</td>
+                                        <td>{{ $item->lokasi->korlap->nama }}</td>
+                                        <td>
+                                            @if($item->status === 'Non-Tunai')
+                                                <span class="badge bg-light-success fs-6">
                                                     {{ $item->status ?? '-' }}
                                                 </span>
                                             @elseif($item->status === 'Tunai')
-                                                <span class="badge bg-light-warning">
+                                                <span class="badge bg-light-warning fs-6">
                                                     {{ $item->status ?? '-' }}
                                                 </span>
                                             @endif

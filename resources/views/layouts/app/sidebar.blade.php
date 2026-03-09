@@ -65,8 +65,8 @@
                         <span class="pc-mtext">Tunai</span>
                     </a>
                 </li>
-                <li class="pc-item">
-                    <a href="../pages/register.html" class="pc-link">
+                <li class="pc-item {{ request()->routeIs('transaksi.non-tunai.*') ? 'active' : '' }}">
+                    <a href="{{ route('transaksi.non-tunai.index') }}" class="pc-link">
                         <span class="pc-micon"><i class="ti ti-wallet"></i></span>
                         <span class="pc-mtext">Non Tunai</span>
                     </a>
