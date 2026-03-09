@@ -115,15 +115,15 @@ new class extends Component {
                                         </td>
                                         <td>
                                             @if($item->ket_jukir === 'Active')
-                                                <span class="badge bg-light-success">
+                                                <span class="badge bg-light-success fs-6">
                                                     {{ $item->ket_jukir ?? '-' }}
                                                 </span>
                                             @elseif($item->ket_jukir === 'Pending')
-                                                <span class="badge bg-light-warning">
+                                                <span class="badge bg-light-warning fs-6">
                                                     {{ $item->ket_jukir ?? '-' }}
                                                 </span>
                                             @elseif($item->ket_jukir === 'Non Active')
-                                                <span class="badge bg-light-danger">
+                                                <span class="badge bg-light-danger fs-6">
                                                     {{ $item->ket_jukir ?? '-' }}
                                                 </span>
                                             @endif

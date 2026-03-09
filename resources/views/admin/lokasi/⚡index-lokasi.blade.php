@@ -105,7 +105,7 @@ new class extends Component {
                                         <td>{{ $item->kelurahan->kelurahan ?? '-' }}</td>
                                         <td>{{ $item->korlap->nama ?? '-' }}</td>
                                         <td>
-                                            <span class="badge bg-light-{{ $item->status === 'Aktif' ? 'success' : 'danger' }}">
+                                            <span class="badge fs-6 bg-light-{{ $item->status === 'Aktif' ? 'success' : 'danger' }}">
                                                 {{ $item->status ?? 'Aktif' }}
                                             </span>
                                         </td>

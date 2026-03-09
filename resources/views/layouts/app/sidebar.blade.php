@@ -118,7 +118,7 @@
                 <li class="pc-item {{ request()->routeIs('users.index') ? 'active' : '' }}">
                     <a href="{{ route('users.index') }}" class="pc-link">
                         <span class="pc-micon"><i class="ti ti-user-plus"></i></span>
-                        <span class="pc-mtext">User Management</span>
+                        <span class="pc-mtext">Users</span>
                     </a>
                 </li>
                 @endif

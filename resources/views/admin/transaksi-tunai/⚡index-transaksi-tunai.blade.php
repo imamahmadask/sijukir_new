@@ -89,12 +89,11 @@ new class extends Component {
                             <thead class="bg-light">
                                 <tr>
                                     <th class="ps-4 py-3 text-uppercase small fw-bold text-muted">#</th>
-                                    <th class="py-3 text-uppercase small fw-bold text-muted">Tanggal</th>
-                                    <th class="py-3 text-uppercase small fw-bold text-muted">Juru Parkir</th>
-                                    <th class="py-3 text-uppercase small fw-bold text-muted">Area</th>
                                     <th class="py-3 text-uppercase small fw-bold text-muted">No Kwitansi</th>
+                                    <th class="py-3 text-uppercase small fw-bold text-muted">Jukir</th>
+                                    <th class="py-3 text-uppercase small fw-bold text-muted">Area</th>
                                     <th class="py-3 text-uppercase small fw-bold text-muted">Jumlah</th>
-                                    <th class="py-3 text-uppercase small fw-bold text-muted">Type</th>
+                                    <th class="py-3 text-uppercase small fw-bold text-muted">Jenis</th>
                                     <th class="pe-4 py-3 text-uppercase small fw-bold text-muted" width="150">Aksi</th>
                                 </tr>
                             </thead>
@@ -102,10 +101,21 @@ new class extends Component {
                                 @forelse ($transactions as $index => $item)
                                     <tr wire:key="transaction-{{ $item->id }}">
                                         <td class="ps-4">{{ $index + 1 }}</td>
-                                        <td>{{ date('d/m/Y', strtotime($item->tgl_transaksi)) }}</td>
-                                        <td class="fw-bold">{{ $item->jukir->nama_jukir ?? '-' }}</td>
+                                        <td>
+                                            <span class="fw-bold">{{ $item->no_kwitansi }}</span>
+                                            <br>
+                                            <span class="text-muted small fst-italic">
+                                                {{ date('d/m/Y', strtotime($item->tgl_transaksi)) }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="fw-bold">{{ $item->jukir->nama_jukir ?? '-' }}</span>
+                                            <br>
+                                            <span class="text-muted small fst-italic">
+                                                {{ $item->jukir->lokasi->titik_parkir ?? '-' }}
+                                            </span>
+                                        </td>
                                         <td><i class="ti ti-map-pin text-muted me-1 small"></i>{{ $item->area->Kecamatan ?? '-' }}</td>
-                                        <td>{{ $item->no_kwitansi }}</td>
                                         <td>Rp {{ number_format($item->jumlah_transaksi, 0, ',', '.') }}</td>
                                         <td><span class="badge bg-light-info text-info px-2">{{ $item->type ?? 'Normal' }}</span></td>
                                         <td class="pe-4">
