@@ -3,7 +3,10 @@
 use Livewire\Component;
 use App\Models\Jukir;
 use App\Models\TransNonTunai;
+use App\Models\HistoriJukir;
+use App\Models\PembantuJukir;
 use Livewire\WithPagination;
+use Livewire\Attributes\On;
 
 new class extends Component {
     use WithPagination;
@@ -16,6 +19,7 @@ new class extends Component {
         $this->jukir = Jukir::with('lokasi')->findOrFail($id);
     }
 
+    #[On('refresh-detail-jukir')]
     public function render()
     {
         $transactions = collect();
@@ -27,9 +31,49 @@ new class extends Component {
             $transactions = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 5);
         }
 
+        $historiList = HistoriJukir::where('jukir_id', $this->jukir->id)
+            ->orderBy('tgl_histori', 'desc')
+            ->get();
+
+        $pembantuList = PembantuJukir::where('jukir_id', $this->jukir->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
         return $this->view()->title('Detail Jukir')->with([
-            'transactions' => $transactions
+            'transactions' => $transactions,
+            'historiList'  => $historiList,
+            'pembantuList' => $pembantuList,
         ]);
+    }
+
+    public function openCreateHistori()
+    {
+        $this->dispatch('open-create-histori', jukir_id: $this->jukir->id)->to('admin::jukir.histori.histori_jukir');
+    }
+
+    public function openEditHistori($id)
+    {
+        $this->dispatch('open-edit-histori', id: $id)->to('admin::jukir.histori.histori_jukir');
+    }
+
+    public function confirmDeleteHistori($id)
+    {
+        $this->dispatch('confirm-delete-histori', id: $id)->to('admin::jukir.histori.histori_jukir');
+    }
+
+    public function openCreatePembantu()
+    {
+        $this->dispatch('open-create-pembantu', jukir_id: $this->jukir->id)->to('admin::jukir.pembantu.pembantu_jukir');
+    }
+
+    public function openEditPembantu($id)
+    {
+        $this->dispatch('open-edit-pembantu', id: $id)->to('admin::jukir.pembantu.pembantu_jukir');
+    }
+
+    public function confirmDeletePembantu($id)
+    {
+        $this->dispatch('confirm-delete-pembantu', id: $id)->to('admin::jukir.pembantu.pembantu_jukir');
     }
 };
 ?>
@@ -279,6 +323,144 @@ new class extends Component {
                 </div>
             </div>
 
+            <!-- Histori Jukir -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom-0 pt-4 px-4 pb-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 fw-bold"><i class="ti ti-history me-1"></i> Histori Jukir</h6>
+                        <button type="button" class="btn btn-sm btn-primary" wire:click="openCreateHistori">
+                            <i class="ti ti-plus me-1"></i> Tambah
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0 mt-3">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4 py-3 small fw-normal text-muted border-0">Tanggal</th>
+                                    <th class="py-3 small fw-normal text-muted border-0">Jenis</th>
+                                    <th class="py-3 small fw-normal text-muted border-0">No. Surat</th>
+                                    <th class="py-3 small fw-normal text-muted border-0">Keterangan</th>
+                                    <th class="pe-4 py-3 small fw-normal text-muted text-center border-0" width="100">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($historiList as $h)
+                                <tr>
+                                    <td class="ps-4 border-0 border-bottom">
+                                        <span class="fw-medium">{{ $h->tgl_histori ? date('d M Y', strtotime($h->tgl_histori)) : '-' }}</span>
+                                    </td>
+                                    <td class="border-0 border-bottom">
+                                        @php
+                                            $jenisColor = match($h->jenis_histori) {
+                                                'Mutasi' => 'primary',
+                                                'Cuti' => 'info',
+                                                'Peringatan' => 'warning',
+                                                'Sanksi' => 'danger',
+                                                default => 'secondary',
+                                            };
+                                        @endphp
+                                        <span class="badge bg-light text-{{ $jenisColor }} border border-{{ $jenisColor }} border-opacity-25 fw-normal">{{ $h->jenis_histori ?? '-' }}</span>
+                                    </td>
+                                    <td class="border-0 border-bottom">{{ $h->no_surat ?? '-' }}</td>
+                                    <td class="border-0 border-bottom">
+                                        <span class="text-truncate d-inline-block" style="max-width: 200px;">{{ $h->histori ?? '-' }}</span>
+                                    </td>
+                                    <td class="pe-4 text-center border-0 border-bottom">
+                                        <div class="d-flex gap-1 justify-content-center">
+                                            <button type="button" class="btn btn-sm btn-icon btn-light-warning" title="Edit" wire:click="openEditHistori({{ $h->id }})">
+                                                <i class="ti ti-edit"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-icon btn-light-danger" title="Hapus" wire:click="confirmDeleteHistori({{ $h->id }})">
+                                                <i class="ti ti-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="5" class="text-center py-5 text-muted small">
+                                        <i class="ti ti-history-off fs-1 d-block mt-2 mb-2 text-muted opacity-50"></i>
+                                        Belum ada data histori
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Jukir Pembantu -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom-0 pt-4 px-4 pb-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 fw-bold"><i class="ti ti-users me-1"></i> Jukir Pembantu</h6>
+                        <button type="button" class="btn btn-sm btn-primary" wire:click="openCreatePembantu">
+                            <i class="ti ti-plus me-1"></i> Tambah
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0 mt-3">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4 py-3 small fw-normal text-muted border-0">Nama</th>
+                                    <th class="py-3 small fw-normal text-muted border-0">NIK</th>
+                                    <th class="py-3 small fw-normal text-muted border-0">Telepon</th>
+                                    <th class="py-3 small fw-normal text-muted text-center border-0">Status</th>
+                                    <th class="pe-4 py-3 small fw-normal text-muted text-center border-0" width="100">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($pembantuList as $p)
+                                <tr>
+                                    <td class="ps-4 border-0 border-bottom">
+                                        <div class="d-flex align-items-center">
+                                            <img src="{{ $p->foto ? asset('storage/' . $p->foto) : 'https://ui-avatars.com/api/?name='.urlencode($p->nama).'&background=eaeaea&color=333&size=40' }}" 
+                                                 class="rounded-circle me-2" style="width: 36px; height: 36px; object-fit: cover;">
+                                            <div>
+                                                <span class="fw-medium d-block">{{ $p->nama }}</span>
+                                                <small class="text-muted">{{ $p->jenis_kelamin ?? '' }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="border-0 border-bottom">{{ $p->nik ?? '-' }}</td>
+                                    <td class="border-0 border-bottom">{{ $p->telepon ?? '-' }}</td>
+                                    <td class="text-center border-0 border-bottom">
+                                        @if($p->status == '1')
+                                            <span class="badge bg-light text-success border border-success border-opacity-25 fw-normal">Active</span>
+                                        @else
+                                            <span class="badge bg-light text-danger border border-danger border-opacity-25 fw-normal">{{ $p->status ?? 'Non Active' }}</span>
+                                        @endif
+                                    </td>
+                                    <td class="pe-4 text-center border-0 border-bottom">
+                                        <div class="d-flex gap-1 justify-content-center">
+                                            <button type="button" class="btn btn-sm btn-icon btn-light-warning" title="Edit" wire:click="openEditPembantu({{ $p->id }})">
+                                                <i class="ti ti-edit"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-icon btn-light-danger" title="Hapus" wire:click="confirmDeletePembantu({{ $p->id }})">
+                                                <i class="ti ti-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="5" class="text-center py-5 text-muted small">
+                                        <i class="ti ti-users-minus fs-1 d-block mt-2 mb-2 text-muted opacity-50"></i>
+                                        Belum ada data jukir pembantu
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <!-- List Transaksi Non Tunai -->
             @if($jukir->merchant_id)
             <div class="card border-0 shadow-sm mb-4">
@@ -333,5 +515,25 @@ new class extends Component {
             @endif
         </div>
     </div>
-</div>
+
+    <!-- Modal Components -->
+    @livewire('admin::jukir.histori.histori_jukir')
+    @livewire('admin::jukir.pembantu.pembantu_jukir')
+
+    <script>
+        document.addEventListener('livewire:initialized', () => {
+           @this.on('open-modal', (event) => {
+               const modal = new bootstrap.Modal(document.getElementById(event.name));
+               modal.show();
+           });
+
+           @this.on('close-modal', (event) => {
+               const modalElement = document.getElementById(event.name);
+               const modal = bootstrap.Modal.getInstance(modalElement);
+               if (modal) {
+                   modal.hide();
+               }
+           });
+        });
+    </script>
 </div>

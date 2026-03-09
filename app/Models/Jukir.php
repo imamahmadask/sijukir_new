@@ -61,4 +61,14 @@ class Jukir extends Model
     {
         return $this->belongsTo(Merchant::class, 'merchant_id');
     }
+
+    public function histori()
+    {
+        return $this->hasMany(HistoriJukir::class, 'jukir_id');
+    }
+
+    public function pembantu()
+    {
+        return $this->hasMany(PembantuJukir::class, 'jukir_id');
+    }
 }
