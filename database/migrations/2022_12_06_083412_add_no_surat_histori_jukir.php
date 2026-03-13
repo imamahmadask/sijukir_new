@@ -18,7 +18,7 @@ return new class extends Migration
                              
             $table->string('jenis_histori', 50)->change();                 
             $table->string('created_by', 50)->change();                 
-            $table->string('edited_by', 50)->change();                 
+            $table->string('edited_by', 50)->nullable()->change();                 
             $table->integer('jukir_id')->change();                 
         });       
     }

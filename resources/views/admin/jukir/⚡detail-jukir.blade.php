@@ -32,6 +32,7 @@ new class extends Component {
         }
 
         $historiList = HistoriJukir::where('jukir_id', $this->jukir->id)
+            ->orderBy('created_at', 'desc')
             ->orderBy('tgl_histori', 'desc')
             ->get();
 
@@ -188,7 +189,7 @@ new class extends Component {
                     <a href="{{ asset('storage/' . $jukir->merchant->qris) }}" target="_blank" class="btn btn-light border btn-sm">QRIS Merchant</a>
                 </div>
             </div>
-            @endif
+            @endif            
         </div>
 
         <!-- Main Details (Right Column) -->
@@ -321,142 +322,147 @@ new class extends Component {
                         </div>
                     </div>                
                 </div>
-            </div>
+            </div>             
 
-            <!-- Histori Jukir -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white border-bottom-0 pt-4 px-4 pb-0">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h6 class="mb-0 fw-bold"><i class="ti ti-history me-1"></i> Histori Jukir</h6>
-                        <button type="button" class="btn btn-sm btn-primary" wire:click="openCreateHistori">
-                            <i class="ti ti-plus me-1"></i> Tambah
-                        </button>
-                    </div>
-                </div>
-                <div class="card-body p-0 mt-3">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0 align-middle">
-                            <thead class="bg-light">
-                                <tr>
-                                    <th class="ps-4 py-3 small fw-normal text-muted border-0">Tanggal</th>
-                                    <th class="py-3 small fw-normal text-muted border-0">Jenis</th>
-                                    <th class="py-3 small fw-normal text-muted border-0">No. Surat</th>
-                                    <th class="py-3 small fw-normal text-muted border-0">Keterangan</th>
-                                    <th class="pe-4 py-3 small fw-normal text-muted text-center border-0" width="100">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
+            <div class="row">
+                <div class="col-md-6">
+                    <!-- Histori Jukir -->
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-white border-bottom-0 pt-4 px-4 pb-0">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 fw-bold"><i class="ti ti-history me-1"></i> Histori Jukir</h6>
+                                <button type="button" class="btn btn-sm btn-primary" wire:click="openCreateHistori">
+                                    <i class="ti ti-plus me-1"></i> Tambah
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body p-4 mt-1">
+                            <style>
+                                .timeline-scroll {
+                                    max-height: 400px;
+                                    overflow-y: auto;
+                                    padding-right: 10px;
+                                }
+                                .timeline-scroll::-webkit-scrollbar {
+                                    width: 4px;
+                                }
+                                .timeline-scroll::-webkit-scrollbar-track {
+                                    background: transparent;
+                                }
+                                .timeline-scroll::-webkit-scrollbar-thumb {
+                                    background: #e9ecef;
+                                    border-radius: 10px;
+                                }
+                                .timeline-scroll::-webkit-scrollbar-thumb:hover {
+                                    background: #dee2e6;
+                                }
+                            </style>
+                            <div class="timeline-container timeline-scroll">
                                 @forelse($historiList as $h)
-                                <tr>
-                                    <td class="ps-4 border-0 border-bottom">
-                                        <span class="fw-medium">{{ $h->tgl_histori ? date('d M Y', strtotime($h->tgl_histori)) : '-' }}</span>
-                                    </td>
-                                    <td class="border-0 border-bottom">
-                                        @php
-                                            $jenisColor = match($h->jenis_histori) {
-                                                'Mutasi' => 'primary',
-                                                'Cuti' => 'info',
-                                                'Peringatan' => 'warning',
-                                                'Sanksi' => 'danger',
-                                                default => 'secondary',
-                                            };
-                                        @endphp
-                                        <span class="badge bg-light text-{{ $jenisColor }} border border-{{ $jenisColor }} border-opacity-25 fw-normal">{{ $h->jenis_histori ?? '-' }}</span>
-                                    </td>
-                                    <td class="border-0 border-bottom">{{ $h->no_surat ?? '-' }}</td>
-                                    <td class="border-0 border-bottom">
-                                        <span class="text-truncate d-inline-block" style="max-width: 200px;">{{ $h->histori ?? '-' }}</span>
-                                    </td>
-                                    <td class="pe-4 text-center border-0 border-bottom">
-                                        <div class="d-flex gap-1 justify-content-center">
-                                            <button type="button" class="btn btn-sm btn-icon btn-light-warning" title="Edit" wire:click="openEditHistori({{ $h->id }})">
-                                                <i class="ti ti-edit"></i>
-                                            </button>
-                                            <button type="button" class="btn btn-sm btn-icon btn-light-danger" title="Hapus" wire:click="confirmDeleteHistori({{ $h->id }})">
-                                                <i class="ti ti-trash"></i>
-                                            </button>
+                                    @php
+                                        $jenisColor = match($h->jenis_histori) {
+                                            'Mutasi' => 'primary',
+                                            'Cuti' => 'info',
+                                            'Peringatan' => 'warning',
+                                            'Sanksi' => 'danger',
+                                            default => 'secondary',
+                                        };
+                                    @endphp
+                                    <div class="d-flex mb-4 position-relative">
+                                        @if(!$loop->last)
+                                            <div class="position-absolute border-start border-2 border-light h-100" style="left: 6px; top: 24px; z-index: 0;"></div>
+                                        @endif
+                                        <div class="rounded-circle bg-{{ $jenisColor }} mt-1 shadow-sm" style="width: 14px; height: 14px; z-index: 1; border: 3px solid #fff;"></div>
+                                        <div class="ms-3 flex-grow-1">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <span class="badge bg-light-{{ $jenisColor }} text-{{ $jenisColor }} mb-1 fw-bold" style="font-size: 0.65rem; letter-spacing: 0.5px;">{{ strtoupper($h->jenis_histori ?? '-') }}</span>
+                                                    <div class="small text-muted fw-medium" style="font-size: 0.75rem;">{{ $h->tgl_histori ? date('d M Y', strtotime($h->tgl_histori)) : '-' }}</div>
+                                                </div>
+                                                <div class="d-flex gap-1">
+                                                    <button type="button" class="btn btn-sm btn-icon btn-light-warning shadow-none" style="width: 26px; height: 26px;" title="Edit" wire:click="openEditHistori({{ $h->id }})">
+                                                        <i class="ti ti-edit" style="font-size: 0.8rem;"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-icon btn-light-danger shadow-none" style="width: 26px; height: 26px;" title="Hapus" wire:click="confirmDeleteHistori({{ $h->id }})">
+                                                        <i class="ti ti-trash" style="font-size: 0.8rem;"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <p class="small text-muted mb-0 mt-2 pe-2" style="line-height: 1.4;">{{ $h->histori ?? '-' }}</p>
                                         </div>
-                                    </td>
-                                </tr>
+                                    </div>
                                 @empty
-                                <tr>
-                                    <td colspan="5" class="text-center py-5 text-muted small">
+                                    <div class="text-center py-5 text-muted small">
                                         <i class="ti ti-history-off fs-1 d-block mt-2 mb-2 text-muted opacity-50"></i>
                                         Belum ada data histori
-                                    </td>
-                                </tr>
+                                    </div>
                                 @endforelse
-                            </tbody>
-                        </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Jukir Pembantu -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white border-bottom-0 pt-4 px-4 pb-0">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h6 class="mb-0 fw-bold"><i class="ti ti-users me-1"></i> Jukir Pembantu</h6>
-                        <button type="button" class="btn btn-sm btn-primary" wire:click="openCreatePembantu">
-                            <i class="ti ti-plus me-1"></i> Tambah
-                        </button>
-                    </div>
-                </div>
-                <div class="card-body p-0 mt-3">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0 align-middle">
-                            <thead class="bg-light">
-                                <tr>
-                                    <th class="ps-4 py-3 small fw-normal text-muted border-0">Nama</th>
-                                    <th class="py-3 small fw-normal text-muted border-0">NIK</th>
-                                    <th class="py-3 small fw-normal text-muted border-0">Telepon</th>
-                                    <th class="py-3 small fw-normal text-muted text-center border-0">Status</th>
-                                    <th class="pe-4 py-3 small fw-normal text-muted text-center border-0" width="100">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($pembantuList as $p)
-                                <tr>
-                                    <td class="ps-4 border-0 border-bottom">
-                                        <div class="d-flex align-items-center">
-                                            <img src="{{ $p->foto ? asset('storage/' . $p->foto) : 'https://ui-avatars.com/api/?name='.urlencode($p->nama).'&background=eaeaea&color=333&size=40' }}" 
-                                                 class="rounded-circle me-2" style="width: 36px; height: 36px; object-fit: cover;">
-                                            <div>
-                                                <span class="fw-medium d-block">{{ $p->nama }}</span>
-                                                <small class="text-muted">{{ $p->jenis_kelamin ?? '' }}</small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="border-0 border-bottom">{{ $p->nik ?? '-' }}</td>
-                                    <td class="border-0 border-bottom">{{ $p->telepon ?? '-' }}</td>
-                                    <td class="text-center border-0 border-bottom">
-                                        @if($p->status == '1')
-                                            <span class="badge bg-light text-success border border-success border-opacity-25 fw-normal">Active</span>
-                                        @else
-                                            <span class="badge bg-light text-danger border border-danger border-opacity-25 fw-normal">{{ $p->status ?? 'Non Active' }}</span>
-                                        @endif
-                                    </td>
-                                    <td class="pe-4 text-center border-0 border-bottom">
-                                        <div class="d-flex gap-1 justify-content-center">
-                                            <button type="button" class="btn btn-sm btn-icon btn-light-warning" title="Edit" wire:click="openEditPembantu({{ $p->id }})">
-                                                <i class="ti ti-edit"></i>
-                                            </button>
-                                            <button type="button" class="btn btn-sm btn-icon btn-light-danger" title="Hapus" wire:click="confirmDeletePembantu({{ $p->id }})">
-                                                <i class="ti ti-trash"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="5" class="text-center py-5 text-muted small">
-                                        <i class="ti ti-users-minus fs-1 d-block mt-2 mb-2 text-muted opacity-50"></i>
-                                        Belum ada data jukir pembantu
-                                    </td>
-                                </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
+                <div class="col-md-6">
+                    <!-- Jukir Pembantu -->
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-white border-bottom-0 pt-4 px-4 pb-0">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 fw-bold"><i class="ti ti-users me-1"></i> Jukir Pembantu</h6>
+                                <button type="button" class="btn btn-sm btn-primary" wire:click="openCreatePembantu">
+                                    <i class="ti ti-plus me-1"></i> Tambah
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body p-0 mt-3">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0 align-middle">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th class="ps-4 py-3 small fw-normal text-muted border-0">Nama</th>
+                                            <th class="py-3 small fw-normal text-muted text-center border-0">Status</th>
+                                            <th class="pe-4 py-3 small fw-normal text-muted text-center border-0" width="80">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse($pembantuList as $p)
+                                        <tr>
+                                            <td class="ps-4 border-0 border-bottom">
+                                                <div class="d-flex align-items-center">
+                                                    <img src="{{ $p->foto ? asset('storage/' . $p->foto) : 'https://ui-avatars.com/api/?name='.urlencode($p->nama).'&background=eaeaea&color=333&size=40' }}" 
+                                                         class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;">
+                                                    <span class="fw-medium small d-block">{{ $p->nama }}</span>
+                                                </div>
+                                            </td>
+                                            <td class="text-center border-0 border-bottom">
+                                                @if($p->status == '1')
+                                                    <span class="badge bg-light text-success border border-success border-opacity-10 fw-normal" style="font-size: 0.65rem;">Active</span>
+                                                @else
+                                                    <span class="badge bg-light text-danger border border-danger border-opacity-10 fw-normal" style="font-size: 0.65rem;">{{ $p->status ?? 'Non' }}</span>
+                                                @endif
+                                            </td>
+                                            <td class="pe-4 text-center border-0 border-bottom">
+                                                <div class="d-flex gap-1 justify-content-center">
+                                                    <button type="button" class="btn btn-sm btn-icon btn-light-warning" style="width: 24px; height: 24px;" title="Edit" wire:click="openEditPembantu({{ $p->id }})">
+                                                        <i class="ti ti-edit" style="font-size: 0.75rem;"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-icon btn-light-danger" style="width: 24px; height: 24px;" title="Hapus" wire:click="confirmDeletePembantu({{ $p->id }})">
+                                                        <i class="ti ti-trash" style="font-size: 0.75rem;"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        @empty
+                                        <tr>
+                                            <td colspan="3" class="text-center py-5 text-muted small">
+                                                <i class="ti ti-users-minus fs-1 d-block mt-2 mb-2 text-muted opacity-50"></i>
+                                                Belum ada data jukir pembantu
+                                            </td>
+                                        </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
