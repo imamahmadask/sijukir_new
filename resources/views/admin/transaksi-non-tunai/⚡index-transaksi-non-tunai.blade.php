@@ -9,35 +9,63 @@ new class extends Component {
     use WithPagination;
 
     public $search = '';
+    public $startDate = '';
+    public $endDate = '';
     public $perPage = 10;
 
     protected $paginationTheme = 'bootstrap';
 
-    public function updatingSearch()
+    public function mount()
     {
-        $this->resetPage();
+        $this->endDate = date('Y-m-d');
+        $this->startDate = date('Y-m-d', strtotime('-14 days'));
+    }
+
+    public function updated($propertyName)
+    {
+        if (in_array($propertyName, ['search', 'startDate', 'endDate'])) {
+            $this->resetPage();
+        }
     }
 
     #[On('refresh-transactions')]
     public function render()
     {
-        $transactions = TransNonTunai::with(['merchant', 'area'])
+        $transactions = TransNonTunai::select(
+                'merchant_id',
+                'merchant_name',
+                \Illuminate\Support\Facades\DB::raw('MAX(id) as last_trans_id'),
+                \Illuminate\Support\Facades\DB::raw('COUNT(*) as total_transaksi'),
+                \Illuminate\Support\Facades\DB::raw('SUM(total_nilai) as total_nilai_sum'),
+                \Illuminate\Support\Facades\DB::raw('MAX(tgl_transaksi) as last_date')
+            )
             ->where(function($query) {
                 $query->where('merchant_name', 'like', '%' . $this->search . '%')
                     ->orWhere('merchant_id', 'like', '%' . $this->search . '%')
                     ->orWhere('issuer_name', 'like', '%' . $this->search . '%');
             })
-            ->orderBy('tgl_transaksi', 'desc')
+            ->when($this->startDate, function($query) {
+                $query->whereDate('tgl_transaksi', '>=', $this->startDate);
+            })
+            ->when($this->endDate, function($query) {
+                $query->whereDate('tgl_transaksi', '<=', $this->endDate);
+            })
+            ->groupBy('merchant_id', 'merchant_name')
+            ->orderBy('total_nilai_sum', 'desc')
             ->paginate($this->perPage);
 
-        return $this->view()->title('Daftar Transaksi Non-Tunai')->with([
+        return $this->view()->title('Rekap Transaksi Non-Tunai')->with([
             'transactions' => $transactions
         ]);
     }
 
-    public function showDetail($id)
+    public function showDetail($merchantId)
     {
-        $this->dispatch('show-non-tunai-detail', id: $id)->to('admin::transaksi-non-tunai.detail-transaksi-non-tunai');
+        $this->dispatch('show-non-tunai-detail', 
+            merchantId: $merchantId, 
+            startDate: $this->startDate, 
+            endDate: $this->endDate
+        )->to('admin::transaksi-non-tunai.detail-transaksi-non-tunai');
     }
 
     public function openImport()
@@ -87,11 +115,28 @@ new class extends Component {
                     </div>
                 </div>
                 <div class="px-4 pb-3">
-                    <div class="row align-items-center">
-                        <div class="col-md-4">
-                            <div class="input-group">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-5">
+                            <div class="input-group input-group-sm">
                                 <span class="input-group-text bg-white border-end-0"><i class="ti ti-search text-muted"></i></span>
                                 <input type="text" class="form-control border-start-0 ps-0" placeholder="Cari Merchant atau ID..." wire:model.live.debounce.300ms="search">
+                            </div>
+                        </div>
+                        <div class="col-md-7">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-white text-muted small">Dari</span>
+                                    <input type="date" class="form-control" wire:model.live="startDate">
+                                </div>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-white text-muted small">Sampai</span>
+                                    <input type="date" class="form-control" wire:model.live="endDate">
+                                </div>
+                                @if($startDate || $endDate)
+                                    <button class="btn btn-sm btn-light-danger shadow-none" wire:click="$set('startDate', ''); $set('endDate', '')" title="Reset Filter">
+                                        <i class="ti ti-refresh"></i>
+                                    </button>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -102,41 +147,33 @@ new class extends Component {
                             <thead class="bg-light">
                                 <tr>
                                     <th class="ps-4 py-3 text-uppercase small fw-bold text-muted">#</th>
-                                    <th class="py-3 text-uppercase small fw-bold text-muted">Tanggal</th>
                                     <th class="py-3 text-uppercase small fw-bold text-muted">Merchant</th>
-                                    <th class="py-3 text-uppercase small fw-bold text-muted">Issuer</th>
+                                    <th class="py-3 text-uppercase small fw-bold text-muted text-center">Jml Transaksi</th>
                                     <th class="py-3 text-uppercase small fw-bold text-muted text-end">Total Nilai</th>
-                                    <th class="py-3 text-uppercase small fw-bold text-muted text-center">Status</th>
-                                    <th class="pe-4 py-3 text-uppercase small fw-bold text-muted text-center" width="120">Aksi</th>
+                                    <th class="py-3 text-uppercase small fw-bold text-muted text-center">Update Terakhir</th>
+                                    <th class="pe-4 py-3 text-uppercase small fw-bold text-muted text-center" width="80">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse ($transactions as $index => $item)
-                                    <tr wire:key="transaction-{{ $item->id }}">
+                                    <tr wire:key="merchant-{{ $item->merchant_id }}">
                                         <td class="ps-4">{{ ($transactions->currentPage() - 1) * $transactions->perPage() + $index + 1 }}</td>
                                         <td>
-                                            <span class="fw-bold">{{ date('d/m/Y', strtotime($item->tgl_transaksi)) }}</span>
-                                        </td>
-                                        <td>
-                                            <span class="fw-bold d-block">{{ $item->merchant_name ?? '-' }}</span>
+                                            <span class="fw-bold d-block text-dark">{{ $item->merchant_name ?? '-' }}</span>
                                             <small class="text-muted">{{ $item->merchant_id }}</small>
                                         </td>
-                                        <td>{{ $item->issuer_name ?? '-' }}</td>
-                                        <td class="text-end fw-bold text-primary">Rp {{ number_format($item->total_nilai, 0, ',', '.') }}</td>
                                         <td class="text-center">
-                                            @if($item->status == 'Settlement' || $item->status == 'Success')
-                                                <span class="badge bg-light-success text-success px-2">{{ $item->status }}</span>
-                                            @else
-                                                <span class="badge bg-light-warning text-warning px-2">{{ $item->status ?? 'Pending' }}</span>
-                                            @endif
+                                            <span class="badge bg-light text-primary border border-primary border-opacity-10">{{ $item->total_transaksi }} Transaksi</span>
+                                        </td>
+                                        <td class="text-end fw-bold text-primary">Rp {{ number_format($item->total_nilai_sum, 0, ',', '.') }}</td>
+                                        <td class="text-center">
+                                            <span class="small text-muted">{{ date('d/m/Y', strtotime($item->last_date)) }}</span>
                                         </td>
                                         <td class="pe-4 text-center">
-                                            <div class="d-flex gap-1 justify-content-center">
-                                                <button type="button" class="btn btn-sm btn-icon btn-light-info" title="Detail" 
-                                                    wire:click="showDetail('{{ $item->id }}')">
-                                                    <i class="ti ti-eye"></i>
-                                                </button>
-                                            </div>
+                                            <button type="button" class="btn btn-sm btn-icon btn-light-info" title="Lihat Rincian" 
+                                                wire:click="showDetail('{{ $item->merchant_id }}')">
+                                                <i class="ti ti-eye"></i>
+                                            </button>
                                         </td>
                                     </tr>
                                 @empty
