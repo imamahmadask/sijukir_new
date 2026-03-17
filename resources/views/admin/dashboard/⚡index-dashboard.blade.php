@@ -1,8 +1,112 @@
 <?php
 
 use Livewire\Component;
+use App\Models\Jukir;
+use App\Models\Lokasi;
+use App\Models\Area;
+use App\Models\Merchant;
+use App\Models\Korlap;
+use App\Models\TransTunai;
+use App\Models\TransNonTunai;
+use App\Models\ParkirBerlangganan;
+use Carbon\Carbon;
 
 new class extends Component {
+    public $totalJukir;
+    public $jukirActive;
+    public $jukirPending;
+    public $jukirNonActive;
+    public $totalLokasi;
+    public $totalArea;
+    public $totalMerchant;
+    public $totalKorlap;
+    public $totalBerlangganan;
+
+    public $totalTransTunai;
+    public $sumTransTunai;
+    public $totalTransNonTunai;
+    public $sumTransNonTunai;
+
+    public $jukirTunai;
+    public $jukirNonTunai;
+
+    public $recentTransTunai;
+    public $recentTransNonTunai;
+
+    public $areaStats;
+
+    // Monthly chart data
+    public $monthlyTunaiLabels = [];
+    public $monthlyTunaiData = [];
+    public $monthlyNonTunaiData = [];
+
+    public function mount()
+    {
+        $this->loadStats();
+    }
+
+    public function loadStats()
+    {
+        // Jukir stats
+        $this->totalJukir = Jukir::count();
+        $this->jukirActive = Jukir::where('ket_jukir', 'Active')->count();
+        $this->jukirPending = Jukir::where('ket_jukir', 'Pending')->count();
+        $this->jukirNonActive = Jukir::where('ket_jukir', 'Non Active')->count();
+
+        // Jukir by status
+        $this->jukirTunai = Jukir::where('status', 'Tunai')->count();
+        $this->jukirNonTunai = Jukir::where('status', 'Non-Tunai')->count();
+
+        // Core data stats
+        $this->totalLokasi = Lokasi::count();
+        $this->totalArea = Area::count();
+        $this->totalMerchant = Merchant::count();
+        $this->totalKorlap = Korlap::count();
+        $this->totalBerlangganan = ParkirBerlangganan::count();
+
+        // Transaction stats
+        $this->totalTransTunai = TransTunai::count();
+        $this->sumTransTunai = TransTunai::sum('jumlah_transaksi');
+        $this->totalTransNonTunai = TransNonTunai::count();
+        $this->sumTransNonTunai = TransNonTunai::sum('total_nilai');
+
+        // Recent transactions
+        $this->recentTransTunai = TransTunai::with(['jukir', 'area'])
+            ->latest('tgl_transaksi')
+            ->take(5)
+            ->get();
+
+        $this->recentTransNonTunai = TransNonTunai::with(['area'])
+            ->latest('tgl_transaksi')
+            ->take(5)
+            ->get();
+
+        // Area stats (top 5 areas by jukir count)
+        $this->areaStats = Area::withCount(['jukirs', 'lokasis', 'merchants'])
+            ->orderBy('jukirs_count', 'desc')
+            ->take(5)
+            ->get();
+
+        // Monthly chart data (last 6 months)
+        $months = collect();
+        for ($i = 5; $i >= 0; $i--) {
+            $months->push(Carbon::now()->subMonths($i));
+        }
+
+        $this->monthlyTunaiLabels = $months->map(fn($m) => $m->translatedFormat('M Y'))->toArray();
+        $this->monthlyTunaiData = $months->map(function($m) {
+            return TransTunai::whereYear('tgl_transaksi', $m->year)
+                ->whereMonth('tgl_transaksi', $m->month)
+                ->sum('jumlah_transaksi');
+        })->toArray();
+
+        $this->monthlyNonTunaiData = $months->map(function($m) {
+            return TransNonTunai::whereYear('tgl_transaksi', $m->year)
+                ->whereMonth('tgl_transaksi', $m->month)
+                ->sum('total_nilai');
+        })->toArray();
+    }
+
     public function render()
     {
         return $this->view()->title('Dashboard');
@@ -17,309 +121,486 @@ new class extends Component {
             <div class="row align-items-center">
                 <div class="col-md-12">
                     <div class="page-header-title">
-                        <h5 class="m-b-10">Home</h5>
+                        <h5 class="m-b-10">Dashboard</h5>
                     </div>
                     <ul class="breadcrumb">
                         <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
-                        <li class="breadcrumb-item"><a href="javascript: void(0)">Dashboard</a></li>
-                        <li class="breadcrumb-item" aria-current="page">Home</li>
+                        <li class="breadcrumb-item" aria-current="page">Dashboard</li>
                     </ul>
                 </div>
             </div>
         </div>
     </div>
     <!-- [ breadcrumb ] end -->
+
     <!-- [ Main Content ] start -->
     <div class="row">
-        <!-- [ sample-page ] start -->
+
+        <!-- ============ Summary Cards Row 1 ============ -->
         <div class="col-md-6 col-xl-3">
-            <div class="card">
+            <div class="card border-0 shadow-sm">
                 <div class="card-body">
-                    <h6 class="mb-2 f-w-400 text-muted">Total Page Views</h6>
-                    <h4 class="mb-3">4,42,236 <span class="badge bg-light-primary border border-primary"><i
-                                class="ti ti-trending-up"></i> 59.3%</span></h4>
-                    <p class="mb-0 text-muted text-sm">You made an extra <span class="text-primary">35,000</span> this
-                        year
-                    </p>
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <h6 class="mb-0 f-w-400 text-muted">Total Jukir</h6>
+                        <div class="avtar avtar-s rounded-circle text-primary bg-light-primary">
+                            <i class="ti ti-user f-18"></i>
+                        </div>
+                    </div>
+                    <h3 class="mb-2 fw-bold">{{ number_format($totalJukir) }}</h3>
+                    <div class="d-flex gap-2">
+                        <span class="badge bg-light-success border border-success"><i class="ti ti-check me-1"></i>{{ $jukirActive }} Active</span>
+                        <span class="badge bg-light-warning border border-warning"><i class="ti ti-clock me-1"></i>{{ $jukirPending }} Pending</span>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="col-md-6 col-xl-3">
-            <div class="card">
+            <div class="card border-0 shadow-sm">
                 <div class="card-body">
-                    <h6 class="mb-2 f-w-400 text-muted">Total Users</h6>
-                    <h4 class="mb-3">78,250 <span class="badge bg-light-success border border-success"><i
-                                class="ti ti-trending-up"></i> 70.5%</span></h4>
-                    <p class="mb-0 text-muted text-sm">You made an extra <span class="text-success">8,900</span> this
-                        year</p>
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <h6 class="mb-0 f-w-400 text-muted">Titik Parkir</h6>
+                        <div class="avtar avtar-s rounded-circle text-success bg-light-success">
+                            <i class="ti ti-map-pin f-18"></i>
+                        </div>
+                    </div>
+                    <h3 class="mb-2 fw-bold">{{ number_format($totalLokasi) }}</h3>
+                    <p class="mb-0 text-muted text-sm">Tersebar di <span class="text-success fw-bold">{{ $totalArea }}</span> Kecamatan</p>
                 </div>
             </div>
         </div>
         <div class="col-md-6 col-xl-3">
-            <div class="card">
+            <div class="card border-0 shadow-sm">
                 <div class="card-body">
-                    <h6 class="mb-2 f-w-400 text-muted">Total Order</h6>
-                    <h4 class="mb-3">18,800 <span class="badge bg-light-warning border border-warning"><i
-                                class="ti ti-trending-down"></i> 27.4%</span></h4>
-                    <p class="mb-0 text-muted text-sm">You made an extra <span class="text-warning">1,943</span> this
-                        year</p>
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <h6 class="mb-0 f-w-400 text-muted">Merchant</h6>
+                        <div class="avtar avtar-s rounded-circle text-warning bg-light-warning">
+                            <i class="ti ti-shopping-cart f-18"></i>
+                        </div>
+                    </div>
+                    <h3 class="mb-2 fw-bold">{{ number_format($totalMerchant) }}</h3>
+                    <p class="mb-0 text-muted text-sm">Terdaftar <span class="text-warning fw-bold">{{ $totalKorlap }}</span> Korlap</p>
                 </div>
             </div>
         </div>
         <div class="col-md-6 col-xl-3">
-            <div class="card">
+            <div class="card border-0 shadow-sm">
                 <div class="card-body">
-                    <h6 class="mb-2 f-w-400 text-muted">Total Sales</h6>
-                    <h4 class="mb-3">$35,078 <span class="badge bg-light-danger border border-danger"><i
-                                class="ti ti-trending-down"></i> 27.4%</span></h4>
-                    <p class="mb-0 text-muted text-sm">You made an extra <span class="text-danger">$20,395</span> this
-                        year
-                    </p>
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <h6 class="mb-0 f-w-400 text-muted">Berlangganan</h6>
+                        <div class="avtar avtar-s rounded-circle text-danger bg-light-danger">
+                            <i class="ti ti-ticket f-18"></i>
+                        </div>
+                    </div>
+                    <h3 class="mb-2 fw-bold">{{ number_format($totalBerlangganan) }}</h3>
+                    <p class="mb-0 text-muted text-sm">Total kendaraan berlangganan</p>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-12 col-xl-8">
-            <div class="d-flex align-items-center justify-content-between mb-3">
-                <h5 class="mb-0">Unique Visitor</h5>
-                <ul class="nav nav-pills justify-content-end mb-0" id="chart-tab-tab" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="chart-tab-home-tab" data-bs-toggle="pill"
-                            data-bs-target="#chart-tab-home" type="button" role="tab"
-                            aria-controls="chart-tab-home" aria-selected="true">Month</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="chart-tab-profile-tab" data-bs-toggle="pill"
-                            data-bs-target="#chart-tab-profile" type="button" role="tab"
-                            aria-controls="chart-tab-profile" aria-selected="false">Week</button>
-                    </li>
-                </ul>
-            </div>
-            <div class="card">
+        <!-- ============ Transaction Summary Cards ============ -->
+        <div class="col-md-6 col-xl-4">
+            <div class="card border-0 shadow-sm">
                 <div class="card-body">
-                    <div class="tab-content" id="chart-tab-tabContent">
-                        <div class="tab-pane" id="chart-tab-home" role="tabpanel" aria-labelledby="chart-tab-home-tab"
-                            tabindex="0">
-                            <div id="visitor-chart-1"></div>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div>
+                            <h6 class="mb-1 text-muted">Transaksi Tunai</h6>
+                            <h4 class="mb-0 fw-bold">Rp {{ number_format($sumTransTunai, 0, ',', '.') }}</h4>
                         </div>
-                        <div class="tab-pane show active" id="chart-tab-profile" role="tabpanel"
-                            aria-labelledby="chart-tab-profile-tab" tabindex="0">
-                            <div id="visitor-chart"></div>
+                        <div class="avtar avtar-l rounded-circle text-success bg-light-success">
+                            <i class="ti ti-cash f-24"></i>
                         </div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <span class="text-muted text-sm">{{ number_format($totalTransTunai) }} Transaksi</span>
+                        <a href="{{ route('transaksi.tunai.index') }}" class="text-primary text-sm fw-bold">Lihat Semua <i class="ti ti-chevron-right"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div>
+                            <h6 class="mb-1 text-muted">Transaksi Non-Tunai</h6>
+                            <h4 class="mb-0 fw-bold">Rp {{ number_format($sumTransNonTunai, 0, ',', '.') }}</h4>
+                        </div>
+                        <div class="avtar avtar-l rounded-circle text-primary bg-light-primary">
+                            <i class="ti ti-wallet f-24"></i>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <span class="text-muted text-sm">{{ number_format($totalTransNonTunai) }} Transaksi</span>
+                        <a href="{{ route('transaksi.non-tunai.index') }}" class="text-primary text-sm fw-bold">Lihat Semua <i class="ti ti-chevron-right"></i></a>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-md-12 col-xl-4">
-            <h5 class="mb-3">Income Overview</h5>
-            <div class="card">
+            <div class="card border-0 shadow-sm">
                 <div class="card-body">
-                    <h6 class="mb-2 f-w-400 text-muted">This Week Statistics</h6>
-                    <h3 class="mb-3">$7,650</h3>
-                    <div id="income-overview-chart"></div>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div>
+                            <h6 class="mb-1 text-muted">Total Pendapatan</h6>
+                            <h4 class="mb-0 fw-bold">Rp {{ number_format($sumTransTunai + $sumTransNonTunai, 0, ',', '.') }}</h4>
+                        </div>
+                        <div class="avtar avtar-l rounded-circle text-warning bg-light-warning">
+                            <i class="ti ti-chart-bar f-24"></i>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <span class="badge bg-light-success border border-success">
+                            <i class="ti ti-cash me-1"></i>Tunai {{ $totalTransTunai }}
+                        </span>
+                        <span class="badge bg-light-primary border border-primary">
+                            <i class="ti ti-wallet me-1"></i>Non-Tunai {{ $totalTransNonTunai }}
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
 
+        <!-- ============ Chart: Monthly Transactions ============ -->
         <div class="col-md-12 col-xl-8">
-            <h5 class="mb-3">Recent Orders</h5>
-            <div class="card tbl-card">
+            <h5 class="mb-3">Grafik Pendapatan (6 Bulan Terakhir)</h5>
+            <div class="card border-0 shadow-sm">
                 <div class="card-body">
+                    <div id="monthly-transaction-chart"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ Jukir Distribution ============ -->
+        <div class="col-md-12 col-xl-4">
+            <h5 class="mb-3">Distribusi Jukir</h5>
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div id="jukir-distribution-chart"></div>
+                    <div class="mt-3">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-success rounded-circle p-1" style="width: 10px; height: 10px;"></span>
+                                <span class="text-muted">Active</span>
+                            </div>
+                            <span class="fw-bold">{{ $jukirActive }}</span>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-warning rounded-circle p-1" style="width: 10px; height: 10px;"></span>
+                                <span class="text-muted">Pending</span>
+                            </div>
+                            <span class="fw-bold">{{ $jukirPending }}</span>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-danger rounded-circle p-1" style="width: 10px; height: 10px;"></span>
+                                <span class="text-muted">Non Active</span>
+                            </div>
+                            <span class="fw-bold">{{ $jukirNonActive }}</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-info rounded-circle p-1" style="width: 10px; height: 10px;"></span>
+                                <span class="text-muted">Tunai</span>
+                            </div>
+                            <span class="fw-bold">{{ $jukirTunai }}</span>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-primary rounded-circle p-1" style="width: 10px; height: 10px;"></span>
+                                <span class="text-muted">Non-Tunai</span>
+                            </div>
+                            <span class="fw-bold">{{ $jukirNonTunai }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ Area Statistics ============ -->
+        <div class="col-md-12 col-xl-6">
+            <h5 class="mb-3">Statistik per Area (Top 5)</h5>
+            <div class="card border-0 shadow-sm tbl-card">
+                <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-hover table-borderless mb-0">
-                            <thead>
+                        <table class="table table-hover table-borderless mb-0 align-middle">
+                            <thead class="bg-light">
                                 <tr>
-                                    <th>TRACKING NO.</th>
-                                    <th>PRODUCT NAME</th>
-                                    <th>TOTAL ORDER</th>
-                                    <th>STATUS</th>
-                                    <th class="text-end">TOTAL AMOUNT</th>
+                                    <th class="ps-4 py-3 text-uppercase small fw-bold text-muted">Kecamatan</th>
+                                    <th class="py-3 text-uppercase small fw-bold text-muted text-center">Jukir</th>
+                                    <th class="py-3 text-uppercase small fw-bold text-muted text-center">Lokasi</th>
+                                    <th class="py-3 text-uppercase small fw-bold text-muted text-center">Merchant</th>
                                 </tr>
                             </thead>
                             <tbody>
+                                @foreach($areaStats as $area)
                                 <tr>
-                                    <td><a href="#" class="text-muted">84564564</a></td>
-                                    <td>Camera Lens</td>
-                                    <td>40</td>
-                                    <td><span class="d-flex align-items-center gap-2"><i
-                                                class="fas fa-circle text-danger f-10 m-r-5"></i>Rejected</span>
-                                    </td>
-                                    <td class="text-end">$40,570</td>
+                                    <td class="ps-4 fw-bold"><i class="ti ti-map-pin text-primary me-1"></i> {{ $area->Kecamatan }}</td>
+                                    <td class="text-center"><span class="badge bg-light-primary">{{ $area->jukirs_count }}</span></td>
+                                    <td class="text-center"><span class="badge bg-light-success">{{ $area->lokasis_count }}</span></td>
+                                    <td class="text-center"><span class="badge bg-light-warning">{{ $area->merchants_count }}</span></td>
                                 </tr>
-                                <tr>
-                                    <td><a href="#" class="text-muted">84564564</a></td>
-                                    <td>Laptop</td>
-                                    <td>300</td>
-                                    <td><span class="d-flex align-items-center gap-2"><i
-                                                class="fas fa-circle text-warning f-10 m-r-5"></i>Pending</span>
-                                    </td>
-                                    <td class="text-end">$180,139</td>
-                                </tr>
-                                <tr>
-                                    <td><a href="#" class="text-muted">84564564</a></td>
-                                    <td>Mobile</td>
-                                    <td>355</td>
-                                    <td><span class="d-flex align-items-center gap-2"><i
-                                                class="fas fa-circle text-success f-10 m-r-5"></i>Approved</span></td>
-                                    <td class="text-end">$180,139</td>
-                                </tr>
-                                <tr>
-                                    <td><a href="#" class="text-muted">84564564</a></td>
-                                    <td>Camera Lens</td>
-                                    <td>40</td>
-                                    <td><span class="d-flex align-items-center gap-2"><i
-                                                class="fas fa-circle text-danger f-10 m-r-5"></i>Rejected</span>
-                                    </td>
-                                    <td class="text-end">$40,570</td>
-                                </tr>
-                                <tr>
-                                    <td><a href="#" class="text-muted">84564564</a></td>
-                                    <td>Laptop</td>
-                                    <td>300</td>
-                                    <td><span class="d-flex align-items-center gap-2"><i
-                                                class="fas fa-circle text-warning f-10 m-r-5"></i>Pending</span>
-                                    </td>
-                                    <td class="text-end">$180,139</td>
-                                </tr>
-                                <tr>
-                                    <td><a href="#" class="text-muted">84564564</a></td>
-                                    <td>Mobile</td>
-                                    <td>355</td>
-                                    <td><span class="d-flex align-items-center gap-2"><i
-                                                class="fas fa-circle text-success f-10 m-r-5"></i>Approved</span></td>
-                                    <td class="text-end">$180,139</td>
-                                </tr>
-                                <tr>
-                                    <td><a href="#" class="text-muted">84564564</a></td>
-                                    <td>Camera Lens</td>
-                                    <td>40</td>
-                                    <td><span class="d-flex align-items-center gap-2"><i
-                                                class="fas fa-circle text-danger f-10 m-r-5"></i>Rejected</span>
-                                    </td>
-                                    <td class="text-end">$40,570</td>
-                                </tr>
-                                <tr>
-                                    <td><a href="#" class="text-muted">84564564</a></td>
-                                    <td>Laptop</td>
-                                    <td>300</td>
-                                    <td><span class="d-flex align-items-center gap-2"><i
-                                                class="fas fa-circle text-warning f-10 m-r-5"></i>Pending</span>
-                                    </td>
-                                    <td class="text-end">$180,139</td>
-                                </tr>
-                                <tr>
-                                    <td><a href="#" class="text-muted">84564564</a></td>
-                                    <td>Mobile</td>
-                                    <td>355</td>
-                                    <td><span class="d-flex align-items-center gap-2"><i
-                                                class="fas fa-circle text-success f-10 m-r-5"></i>Approved</span></td>
-                                    <td class="text-end">$180,139</td>
-                                </tr>
-                                <tr>
-                                    <td><a href="#" class="text-muted">84564564</a></td>
-                                    <td>Mobile</td>
-                                    <td>355</td>
-                                    <td><span class="d-flex align-items-center gap-2"><i
-                                                class="fas fa-circle text-success f-10 m-r-5"></i>Approved</span></td>
-                                    <td class="text-end">$180,139</td>
-                                </tr>
+                                @endforeach
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-12 col-xl-4">
-            <h5 class="mb-3">Analytics Report</h5>
-            <div class="card">
-                <div class="list-group list-group-flush">
-                    <a href="#"
-                        class="list-group-item list-group-item-action d-flex align-items-center justify-content-between">Company
-                        Finance Growth<span class="h5 mb-0">+45.14%</span></a>
-                    <a href="#"
-                        class="list-group-item list-group-item-action d-flex align-items-center justify-content-between">Company
-                        Expenses Ratio<span class="h5 mb-0">0.58%</span></a>
-                    <a href="#"
-                        class="list-group-item list-group-item-action d-flex align-items-center justify-content-between">Business
-                        Risk Cases<span class="h5 mb-0">Low</span></a>
+
+        <!-- ============ Quick Links ============ -->
+        <div class="col-md-12 col-xl-6">
+            <h5 class="mb-3">Menu Cepat</h5>
+            <div class="row g-3">
+                <div class="col-6">
+                    <a href="{{ route('jukir.index') }}" class="card border-0 shadow-sm text-decoration-none h-100">
+                        <div class="card-body text-center py-4">
+                            <div class="avtar avtar-l rounded-circle text-primary bg-light-primary mx-auto mb-3">
+                                <i class="ti ti-user f-24"></i>
+                            </div>
+                            <h6 class="mb-1">Juru Parkir</h6>
+                            <small class="text-muted">{{ number_format($totalJukir) }} data</small>
+                        </div>
+                    </a>
                 </div>
-                <div class="card-body px-2">
-                    <div id="analytics-report-chart"></div>
+                <div class="col-6">
+                    <a href="{{ route('lokasi.index') }}" class="card border-0 shadow-sm text-decoration-none h-100">
+                        <div class="card-body text-center py-4">
+                            <div class="avtar avtar-l rounded-circle text-success bg-light-success mx-auto mb-3">
+                                <i class="ti ti-map-pin f-24"></i>
+                            </div>
+                            <h6 class="mb-1">Titik Parkir</h6>
+                            <small class="text-muted">{{ number_format($totalLokasi) }} lokasi</small>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a href="{{ route('merchant.index') }}" class="card border-0 shadow-sm text-decoration-none h-100">
+                        <div class="card-body text-center py-4">
+                            <div class="avtar avtar-l rounded-circle text-warning bg-light-warning mx-auto mb-3">
+                                <i class="ti ti-shopping-cart f-24"></i>
+                            </div>
+                            <h6 class="mb-1">Merchant</h6>
+                            <small class="text-muted">{{ number_format($totalMerchant) }} merchant</small>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a href="{{ route('berlangganan.index') }}" class="card border-0 shadow-sm text-decoration-none h-100">
+                        <div class="card-body text-center py-4">
+                            <div class="avtar avtar-l rounded-circle text-danger bg-light-danger mx-auto mb-3">
+                                <i class="ti ti-ticket f-24"></i>
+                            </div>
+                            <h6 class="mb-1">Berlangganan</h6>
+                            <small class="text-muted">{{ number_format($totalBerlangganan) }} kendaraan</small>
+                        </div>
+                    </a>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-12 col-xl-8">
-            <h5 class="mb-3">Sales Report</h5>
-            <div class="card">
-                <div class="card-body">
-                    <h6 class="mb-2 f-w-400 text-muted">This Week Statistics</h6>
-                    <h3 class="mb-0">$7,650</h3>
-                    <div id="sales-report-chart"></div>
+        <!-- ============ Recent Transaksi Tunai ============ -->
+        <div class="col-md-12 col-xl-6">
+            <h5 class="mb-3">Transaksi Tunai Terbaru</h5>
+            <div class="card border-0 shadow-sm tbl-card">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-borderless mb-0 align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4 py-3 text-uppercase small fw-bold text-muted">Tanggal</th>
+                                    <th class="py-3 text-uppercase small fw-bold text-muted">Jukir</th>
+                                    <th class="py-3 text-uppercase small fw-bold text-muted">Area</th>
+                                    <th class="py-3 text-uppercase small fw-bold text-muted text-end pe-4">Jumlah</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($recentTransTunai as $item)
+                                <tr>
+                                    <td class="ps-4">{{ $item->tgl_transaksi ? \Carbon\Carbon::parse($item->tgl_transaksi)->format('d M Y') : '-' }}</td>
+                                    <td>{{ $item->jukir->nama_jukir ?? '-' }}</td>
+                                    <td><span class="badge bg-light-info">{{ $item->area->Kecamatan ?? '-' }}</span></td>
+                                    <td class="text-end pe-4 fw-bold text-success">Rp {{ number_format($item->jumlah_transaksi, 0, ',', '.') }}</td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">
+                                        <i class="ti ti-database-off fs-3 d-block mb-2"></i>
+                                        Belum ada data
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-12 col-xl-4">
-            <h5 class="mb-3">Transaction History</h5>
-            <div class="card">
-                <div class="list-group list-group-flush">
-                    <a href="#" class="list-group-item list-group-item-action">
-                        <div class="d-flex">
-                            <div class="shrink-0">
-                                <div class="avtar avtar-s rounded-circle text-success bg-light-success">
-                                    <i class="ti ti-gift f-18"></i>
-                                </div>
-                            </div>
-                            <div class="grow ms-3">
-                                <h6 class="mb-1">Order #002434</h6>
-                                <p class="mb-0 text-muted">Today, 2:00 AM</P>
-                            </div>
-                            <div class="shrink-0 text-end">
-                                <h6 class="mb-1">+ $1,430</h6>
-                                <p class="mb-0 text-muted">78%</P>
-                            </div>
-                        </div>
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action">
-                        <div class="d-flex">
-                            <div class="shrink-0">
-                                <div class="avtar avtar-s rounded-circle text-primary bg-light-primary">
-                                    <i class="ti ti-message-circle f-18"></i>
-                                </div>
-                            </div>
-                            <div class="grow ms-3">
-                                <h6 class="mb-1">Order #984947</h6>
-                                <p class="mb-0 text-muted">5 August, 1:45 PM</P>
-                            </div>
-                            <div class="shrink-0 text-end">
-                                <h6 class="mb-1">- $302</h6>
-                                <p class="mb-0 text-muted">8%</P>
-                            </div>
-                        </div>
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action">
-                        <div class="d-flex">
-                            <div class="shrink-0">
-                                <div class="avtar avtar-s rounded-circle text-danger bg-light-danger">
-                                    <i class="ti ti-settings f-18"></i>
-                                </div>
-                            </div>
-                            <div class="grow ms-3">
-                                <h6 class="mb-1">Order #988784</h6>
-                                <p class="mb-0 text-muted">7 hours ago</P>
-                            </div>
-                            <div class="shrink-0 text-end">
-                                <h6 class="mb-1">- $682</h6>
-                                <p class="mb-0 text-muted">16%</P>
-                            </div>
-                        </div>
-                    </a>
+
+        <!-- ============ Recent Transaksi Non-Tunai ============ -->
+        <div class="col-md-12 col-xl-6">
+            <h5 class="mb-3">Transaksi Non-Tunai Terbaru</h5>
+            <div class="card border-0 shadow-sm tbl-card">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-borderless mb-0 align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4 py-3 text-uppercase small fw-bold text-muted">Tanggal</th>
+                                    <th class="py-3 text-uppercase small fw-bold text-muted">Merchant</th>
+                                    <th class="py-3 text-uppercase small fw-bold text-muted">Area</th>
+                                    <th class="py-3 text-uppercase small fw-bold text-muted text-end pe-4">Nilai</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($recentTransNonTunai as $item)
+                                <tr>
+                                    <td class="ps-4">{{ $item->tgl_transaksi ? \Carbon\Carbon::parse($item->tgl_transaksi)->format('d M Y') : '-' }}</td>
+                                    <td>{{ $item->merchant_name ?? '-' }}</td>
+                                    <td><span class="badge bg-light-info">{{ $item->area->Kecamatan ?? '-' }}</span></td>
+                                    <td class="text-end pe-4 fw-bold text-primary">Rp {{ number_format($item->total_nilai, 0, ',', '.') }}</td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">
+                                        <i class="ti ti-database-off fs-3 d-block mb-2"></i>
+                                        Belum ada data
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
+
     </div>
+    <!-- [ Main Content ] end -->
+
     <!-- [Page Specific JS] start -->
     <script src="{{ asset('assets/js/plugins/apexcharts.min.js') }}"></script>
-    <script src="{{ asset('assets/js/pages/dashboard-default.js') }}"></script>
+    <script>
+        document.addEventListener('livewire:navigated', initDashboardCharts);
+        document.addEventListener('DOMContentLoaded', initDashboardCharts);
+
+        function initDashboardCharts() {
+            // ========== Monthly Transaction Chart ==========
+            var monthlyEl = document.querySelector("#monthly-transaction-chart");
+            if (monthlyEl && !monthlyEl.classList.contains('rendered')) {
+                monthlyEl.classList.add('rendered');
+                var monthlyOptions = {
+                    series: [{
+                        name: 'Tunai',
+                        data: @json($monthlyTunaiData)
+                    }, {
+                        name: 'Non-Tunai',
+                        data: @json($monthlyNonTunaiData)
+                    }],
+                    chart: {
+                        type: 'bar',
+                        height: 360,
+                        toolbar: { show: false },
+                        fontFamily: 'Public Sans, sans-serif'
+                    },
+                    plotOptions: {
+                        bar: {
+                            horizontal: false,
+                            columnWidth: '55%',
+                            borderRadius: 6,
+                        },
+                    },
+                    dataLabels: { enabled: false },
+                    stroke: { show: true, width: 2, colors: ['transparent'] },
+                    xaxis: {
+                        categories: @json($monthlyTunaiLabels),
+                        labels: {
+                            style: { colors: '#8c8c8c', fontSize: '12px' }
+                        }
+                    },
+                    yaxis: {
+                        labels: {
+                            style: { colors: '#8c8c8c' },
+                            formatter: function(val) {
+                                if (val >= 1000000) return 'Rp ' + (val / 1000000).toFixed(1) + 'jt';
+                                if (val >= 1000) return 'Rp ' + (val / 1000).toFixed(0) + 'rb';
+                                return 'Rp ' + val;
+                            }
+                        }
+                    },
+                    fill: { opacity: 1 },
+                    colors: ['#2ca87f', '#4680ff'],
+                    tooltip: {
+                        y: {
+                            formatter: function(val) {
+                                return 'Rp ' + val.toLocaleString('id-ID');
+                            }
+                        }
+                    },
+                    legend: {
+                        position: 'top',
+                        horizontalAlign: 'right',
+                        fontWeight: 600,
+                        markers: { radius: 12, width: 10, height: 10 }
+                    },
+                    grid: {
+                        borderColor: '#f1f1f1',
+                        strokeDashArray: 4,
+                    }
+                };
+
+                var monthlyChart = new ApexCharts(monthlyEl, monthlyOptions);
+                monthlyChart.render();
+            }
+
+            // ========== Jukir Distribution Donut Chart ==========
+            var jukirEl = document.querySelector("#jukir-distribution-chart");
+            if (jukirEl && !jukirEl.classList.contains('rendered')) {
+                jukirEl.classList.add('rendered');
+                var jukirOptions = {
+                    series: [{{ $jukirActive }}, {{ $jukirPending }}, {{ $jukirNonActive }}],
+                    chart: {
+                        type: 'donut',
+                        height: 260,
+                        fontFamily: 'Public Sans, sans-serif'
+                    },
+                    labels: ['Active', 'Pending', 'Non Active'],
+                    colors: ['#2ca87f', '#e58a00', '#dc2626'],
+                    legend: { show: false },
+                    plotOptions: {
+                        pie: {
+                            donut: {
+                                size: '70%',
+                                labels: {
+                                    show: true,
+                                    total: {
+                                        show: true,
+                                        label: 'Total',
+                                        fontSize: '14px',
+                                        fontWeight: 600,
+                                        formatter: function(w) {
+                                            return w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    dataLabels: { enabled: false },
+                    stroke: { width: 2 },
+                    responsive: [{
+                        breakpoint: 480,
+                        options: {
+                            chart: { height: 200 }
+                        }
+                    }]
+                };
+
+                var jukirChart = new ApexCharts(jukirEl, jukirOptions);
+                jukirChart.render();
+            }
+        }
+    </script>
     <!-- [Page Specific JS] end -->
 </div>
