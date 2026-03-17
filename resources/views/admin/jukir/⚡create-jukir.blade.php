@@ -355,16 +355,16 @@ new class extends Component {
                                 @error('potensi_bulanan') <small class="text-danger">{{ $message }}</small> @enderror                                
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label">Tgl PKH UPL</label>
+                                <label class="form-label text-success">Tgl PKH UPL</label>
                                 <input type="date" class="form-control" wire:model.live="tgl_pkh_upl">
                             </div>
                             @if($tgl_pkh_upl)
                             <div class="col-md-4 mb-3">
-                                <label class="form-label">Potensi Harian (Uji Petik)</label>
+                                <label class="form-label text-success">Potensi Harian (Uji Petik)</label>
                                 <input type="number" class="form-control" wire:model.live="uji_petik">
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label">Potensi Bulanan (Uji Petik)</label>
+                                <label class="form-label text-success">Potensi Bulanan (Uji Petik)</label>
                                 <input type="number" class="form-control" wire:model="potensi_bulanan_upl">
                             </div>
                             @endif

@@ -184,6 +184,27 @@ new class extends Component {
         return redirect()->route('jukir.index');
     }
 
+    public function updatedLokasiId($value)
+    {
+        $lokasi = Lokasi::find($value);
+        $this->area_id = $lokasi->area_id;
+    }
+
+    public function updatedJmlHariKerja($value)
+    {
+        $this->hari_kerja_bulan = $value * 4;
+    }
+
+    public function updatedPotensiHarian($value)
+    {
+        $this->potensi_bulanan = $value * $this->hari_kerja_bulan;
+    }
+
+    public function updatedUjiPetik($value)
+    {
+        $this->potensi_bulanan_upl = $value * $this->hari_kerja_bulan;
+    }
+
     public function render()
     {
         return $this->view()->title('Edit Jukir');
@@ -357,7 +378,7 @@ new class extends Component {
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Potensi Harian</label>
-                                <input type="number" class="form-control" wire:model="potensi_harian">
+                                <input type="number" class="form-control" wire:model.live="potensi_harian">
                                 @error('potensi_harian') <small class="text-danger">{{ $message }}</small> @enderror                                
                             </div>
                             <div class="col-md-6 mb-3">
@@ -366,16 +387,16 @@ new class extends Component {
                                 @error('potensi_bulanan') <small class="text-danger">{{ $message }}</small> @enderror                                
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label">Tgl PKH UPL</label>
+                                <label class="form-label text-success">Tgl PKH UPL</label>
                                 <input type="date" class="form-control" wire:model.live="tgl_pkh_upl">
                             </div>
                             @if($tgl_pkh_upl)
                             <div class="col-md-4 mb-3">
-                                <label class="form-label">Potensi Harian (Uji Petik)</label>
-                                <input type="number" class="form-control" wire:model="uji_petik">
+                                <label class="form-label text-success">Potensi Harian (Uji Petik)</label>
+                                <input type="number" class="form-control" wire:model.live="uji_petik">
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label">Potensi Bulanan (Uji Petik)</label>
+                                <label class="form-label text-success">Potensi Bulanan (Uji Petik)</label>
                                 <input type="number" class="form-control" wire:model="potensi_bulanan_upl">
                             </div>
                             @endif

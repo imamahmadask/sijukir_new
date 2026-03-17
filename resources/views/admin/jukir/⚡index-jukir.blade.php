@@ -2,32 +2,79 @@
 
 use Livewire\Component;
 use App\Models\Jukir;
+use App\Models\Area;
 use Livewire\Attributes\On;
+use Livewire\WithPagination;
 
 new class extends Component {
-    public $jukirs = [];
+    use WithPagination;
 
-    public function mount()
+    public $search = '';
+    public $areaFilter = '';
+    public $statusFilter = '';
+    public $ketJukirFilter = '';
+    public $perPage = 10;
+
+    protected $paginationTheme = 'bootstrap';
+
+    public function updatingSearch()
     {
-        $this->loadJukirs();
+        $this->resetPage();
+    }
+
+    public function updatingAreaFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingStatusFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingKetJukirFilter()
+    {
+        $this->resetPage();
     }
 
     #[On('refresh-jukirs')]
-    public function loadJukirs()
+    public function render()
     {
-        $this->jukirs = Jukir::with('lokasi')->get();
+        $query = Jukir::with(['lokasi.area', 'lokasi.korlap', 'merchant'])
+            ->when($this->search, function($q) {
+                $q->where(function($qq) {
+                    $qq->where('nama_jukir', 'like', '%' . $this->search . '%')
+                       ->orWhereHas('lokasi', function($q3) {
+                           $q3->where('titik_parkir', 'like', '%' . $this->search . '%')
+                              ->orWhere('lokasi_parkir', 'like', '%' . $this->search . '%');
+                       });
+                });
+            })
+            ->when($this->areaFilter, function($q) {
+                $q->whereHas('lokasi', function($q2) {
+                    $q2->where('area_id', $this->areaFilter);
+                });
+            })
+            ->when($this->statusFilter, function($q) {
+                $q->where('status', $this->statusFilter);
+            })
+            ->when($this->ketJukirFilter, function($q) {
+                $q->where('ket_jukir', $this->ketJukirFilter);
+            });
+
+        $jukirs = $query->paginate($this->perPage);
+        $areas = Area::orderBy('Kecamatan', 'asc')->get();
+
+        return $this->view()->title('Daftar Jukir')->with([
+            'jukirs' => $jukirs,
+            'areas' => $areas
+        ]);
     }
 
     public function deleteJukir($id)
     {
         Jukir::findOrFail($id)->delete();
-        $this->loadJukirs();
         session()->flash('success', 'Jukir berhasil dihapus.');
-    }
-
-    public function render()
-    {
-        return $this->view()->title('Daftar Jukir');
     }
 };
 ?>
@@ -69,7 +116,49 @@ new class extends Component {
             </div>
 
             <div class="card tbl-card">
-                <div class="card-body">
+                <!-- Filters -->
+                <div class="card-header bg-transparent border-0 px-4 pb-3 pt-3">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-2">
+                             <select class="form-select" wire:model.live="perPage">
+                                <option value="10">10 per halaman</option>
+                                <option value="25">25 per halaman</option>
+                                <option value="50">50 per halaman</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select" wire:model.live="areaFilter">
+                                <option value="">Semua Area</option>
+                                @foreach($areas as $area)
+                                    <option value="{{ $area->id }}">{{ $area->Kecamatan }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select" wire:model.live="statusFilter">
+                                <option value="">Semua Status</option>
+                                <option value="Tunai">Tunai</option>
+                                <option value="Non-Tunai">Non-Tunai</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select" wire:model.live="ketJukirFilter">
+                                <option value="">Semua Keterangan</option>
+                                <option value="Active">Active</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Non Active">Non Active</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 ms-auto">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0"><i class="ti ti-search text-muted"></i></span>
+                                <input type="text" class="form-control border-start-0 ps-0" placeholder="Cari Jukir atau Lokasi..." wire:model.live="search">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-hover table-borderless mb-0 align-middle">
                             <thead>
@@ -87,7 +176,7 @@ new class extends Component {
                             <tbody>
                                 @forelse ($jukirs as $index => $item)
                                     <tr wire:key="jukir-{{ $item->id }}">
-                                        <td>{{ $index + 1 }}</td>                                        
+                                        <td>{{ ($jukirs->currentPage() - 1) * $jukirs->perPage() + $index + 1 }}</td>                                        
                                         <td>
                                             <span class="fw-bold">{{ $item->nama_jukir }}</span>
                                             <br>
@@ -147,6 +236,9 @@ new class extends Component {
                             </tbody>
                         </table>
                     </div>
+                </div>
+                <div class="card-footer bg-transparent border-0 px-4 py-3">
+                    {{ $jukirs->links() }}
                 </div>
             </div>
         </div>
