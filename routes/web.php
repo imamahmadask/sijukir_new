@@ -29,6 +29,8 @@ Route::middleware(['cekRole:superadmin,admin'])->group(function () {
 
     Route::livewire('/admin/transaksi/tunai', 'admin::transaksi-tunai.index-transaksi-tunai')->name('transaksi.tunai.index');
     Route::livewire('/admin/transaksi/non-tunai', 'admin::transaksi-non-tunai.index-transaksi-non-tunai')->name('transaksi.non-tunai.index');
+
+    Route::livewire('/admin/berlangganan', 'admin::berlangganan.index-berlangganan')->name('berlangganan.index');
 });
 
 require __DIR__.'/settings.php';

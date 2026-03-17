@@ -71,8 +71,8 @@
                         <span class="pc-mtext">Non Tunai</span>
                     </a>
                 </li>
-                <li class="pc-item">
-                    <a href="../pages/register.html" class="pc-link">
+                <li class="pc-item {{ request()->routeIs('berlangganan.*') ? 'active' : '' }}">
+                    <a href="{{ route('berlangganan.index') }}" class="pc-link">
                         <span class="pc-micon"><i class="ti ti-ticket"></i></span>
                         <span class="pc-mtext">Berlangganan</span>
                     </a>
