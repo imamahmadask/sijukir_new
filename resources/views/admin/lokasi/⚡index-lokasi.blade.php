@@ -76,7 +76,6 @@ new class extends Component {
                             <thead>
                                 <tr>
                                     <th>#</th>
-                                    <th>Gambar</th>
                                     <th>Titik Parkir</th>
                                     <th>Lokasi</th>
                                     <th>Area (Kecamatan)</th>
@@ -89,23 +88,14 @@ new class extends Component {
                             <tbody>
                                 @forelse ($lokasis as $index => $item)
                                     <tr wire:key="lokasi-{{ $item->id }}">
-                                        <td>{{ $index + 1 }}</td>
-                                        <td>
-                                            @if($item->gambar)
-                                                <img src="{{ asset('storage/' . $item->gambar) }}" class="rounded" style="width: 40px; height: 40px; object-fit: cover;">
-                                            @else
-                                                <div class="rounded bg-light d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                                    <i class="ti ti-map-pin text-muted"></i>
-                                                </div>
-                                            @endif
-                                        </td>
+                                        <td>{{ $index + 1 }}</td>                                        
                                         <td>{{ $item->titik_parkir }}</td>
                                         <td>{{ Str::limit($item->lokasi_parkir, 40) }}</td>
                                         <td>{{ $item->area->Kecamatan ?? '-' }}</td>
                                         <td>{{ $item->kelurahan->kelurahan ?? '-' }}</td>
                                         <td>{{ $item->korlap->nama ?? '-' }}</td>
                                         <td>
-                                            <span class="badge fs-6 bg-light-{{ $item->status === 'Aktif' ? 'success' : 'danger' }}">
+                                            <span class="badge bg-light-{{ $item->status === 'Aktif' ? 'success' : 'danger' }}">
                                                 {{ $item->status ?? 'Aktif' }}
                                             </span>
                                         </td>
@@ -135,4 +125,15 @@ new class extends Component {
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.alert-dismissible').forEach(function (alert) {
+                setTimeout(function () {
+                    var bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                    bsAlert.close();
+                }, 3000);
+            });
+        });
+    </script>
 </div>

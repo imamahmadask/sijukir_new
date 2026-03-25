@@ -40,6 +40,12 @@ new class extends Component {
         session()->flash('success', 'Transaksi berhasil dihapus.');
     }
 
+    #[On('show-alert')]
+    public function showAlert($type, $message)
+    {
+        session()->flash($type, $message);
+    }
+
     public function render()
     {
         return $this->view()->title('Daftar Transaksi Tunai');
@@ -66,16 +72,23 @@ new class extends Component {
         </div>
     </div>
 
+    @if (session()->has('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if (session()->has('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
     <!-- Table -->
     <div class="row">
         <div class="col-12">
-            @if (session('success'))
-                <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert">
-                    <i class="ti ti-check me-2"></i> {{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endif
-
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-transparent border-0 py-4 px-4 d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fw-bold">Daftar Transaksi Tunai</h5>
@@ -158,7 +171,25 @@ new class extends Component {
     @livewire('admin::transaksi-tunai.detail-transaksi-tunai')
 
     <script>
+        function initializeAlerts() {
+            document.querySelectorAll('.alert-dismissible').forEach(function (alert) {
+                if (!alert.dataset.initialized) {
+                    alert.dataset.initialized = 'true';
+                    setTimeout(function () {
+                        var bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                        bsAlert.close();
+                    }, 3000);
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', initializeAlerts);
+        
         document.addEventListener('livewire:initialized', () => {
+            Livewire.hook('morph.updated', ({ el, component }) => {
+                initializeAlerts();
+            });
+            
            @this.on('open-modal', (event) => {
                const modal = new bootstrap.Modal(document.getElementById(event.name));
                modal.show();

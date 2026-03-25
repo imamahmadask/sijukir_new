@@ -190,26 +190,26 @@ new class extends Component {
                                         <td>{{ $item->lokasi->korlap->nama }}</td>
                                         <td>
                                             @if($item->status === 'Non-Tunai')
-                                                <span class="badge bg-light-success fs-6">
+                                                <span class="badge bg-light-success">
                                                     {{ $item->status ?? '-' }}
                                                 </span>
                                             @elseif($item->status === 'Tunai')
-                                                <span class="badge bg-light-warning fs-6">
+                                                <span class="badge bg-light-warning">
                                                     {{ $item->status ?? '-' }}
                                                 </span>
                                             @endif
                                         </td>
                                         <td>
                                             @if($item->ket_jukir === 'Active')
-                                                <span class="badge bg-light-success fs-6">
+                                                <span class="badge bg-light-success">
                                                     {{ $item->ket_jukir ?? '-' }}
                                                 </span>
                                             @elseif($item->ket_jukir === 'Pending')
-                                                <span class="badge bg-light-warning fs-6">
+                                                <span class="badge bg-light-warning">
                                                     {{ $item->ket_jukir ?? '-' }}
                                                 </span>
                                             @elseif($item->ket_jukir === 'Non Active')
-                                                <span class="badge bg-light-danger fs-6">
+                                                <span class="badge bg-light-danger">
                                                     {{ $item->ket_jukir ?? '-' }}
                                                 </span>
                                             @endif

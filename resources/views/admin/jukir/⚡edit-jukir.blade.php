@@ -181,7 +181,7 @@ new class extends Component {
         $jukir->update($data);
 
         session()->flash('success', 'Jukir berhasil diperbarui.');
-        return redirect()->route('jukir.index');
+        return redirect()->route('jukir.detail', $this->jukirId);
     }
 
     public function updatedLokasiId($value)
@@ -338,7 +338,7 @@ new class extends Component {
                             </div>                            
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Jumlah Hari Kerja (Seminggu)</label>
-                                <input type="number" class="form-control" wire:model="jml_hari_kerja">
+                                <input type="number" class="form-control" wire:model.live="jml_hari_kerja">
                                 @error('jml_hari_kerja') <small class="text-danger">{{ $message }}</small> @enderror
                             </div>                            
                             <div class="col-md-6 mb-3">
@@ -346,19 +346,21 @@ new class extends Component {
                                 <input type="number" class="form-control" wire:model="hari_kerja_bulan">
                                 @error('hari_kerja_bulan') <small class="text-danger">{{ $message }}</small> @enderror
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Hari Libur (Bila Ada)</label>
-                                <select class="form-select" wire:model="hari_libur" multiple="multiple">
-                                    <option value="">-- Pilih Hari --</option>
-                                    <option value="Senin">Senin</option>
-                                    <option value="Selasa">Selasa</option>
-                                    <option value="Rabu">Rabu</option>
-                                    <option value="Kamis">Kamis</option>
-                                    <option value="Jumat">Jumat</option>
-                                    <option value="Sabtu">Sabtu</option>
-                                    <option value="Minggu">Minggu</option>
-                                </select>
-                            </div>
+                            @if($jml_hari_kerja < 7)
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Hari Libur (Bila Ada)</label>
+                                    <select class="form-select" wire:model="hari_libur" multiple="multiple">
+                                        <option value="">-- Pilih Hari --</option>
+                                        <option value="Senin">Senin</option>
+                                        <option value="Selasa">Selasa</option>
+                                        <option value="Rabu">Rabu</option>
+                                        <option value="Kamis">Kamis</option>
+                                        <option value="Jumat">Jumat</option>
+                                        <option value="Sabtu">Sabtu</option>
+                                        <option value="Minggu">Minggu</option>
+                                    </select>
+                                </div>
+                            @endif
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Waktu Kerja</label>
                                 <select class="form-select" wire:model="waktu_kerja">

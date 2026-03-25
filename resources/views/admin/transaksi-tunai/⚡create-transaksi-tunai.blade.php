@@ -73,9 +73,18 @@ new class extends Component {
             'dokumen'          => $dokumenPath,
         ]);
 
+        Jukir::find($this->jukir_id)->update([
+            'ket_jukir' => 'Active',
+        ]);
+
+        $this->reset(['jumlah_transaksi', 'no_kwitansi', 'jukir_id', 'keterangan', 'type', 'dokumen']);
+        $this->tgl_transaksi = date('Y-m-d');
+        $this->keterangan = '-';
+        $this->type = 'Normal';
+
         $this->dispatch('refresh-transactions')->to('admin::transaksi-tunai.index-transaksi-tunai');
         $this->dispatch('close-modal', name: 'modalCreateTransaction');
-        session()->flash('success', 'Transaksi berhasil ditambahkan.');
+        $this->dispatch('show-alert', type: 'success', message: 'Transaksi berhasil ditambahkan.')->to('admin::transaksi-tunai.index-transaksi-tunai');
     }
 
     public function updatedType($value){

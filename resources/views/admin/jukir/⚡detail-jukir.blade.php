@@ -98,6 +98,20 @@ new class extends Component {
         </div>
     </div>
 
+    @if (session()->has('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if (session()->has('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif    
+
     <!-- Simplified Content -->
     <div class="row">
         <!-- Sidebar Profile and Quick Stats -->
@@ -108,8 +122,10 @@ new class extends Component {
                          alt="User profile" 
                          class="rounded-circle mx-auto d-block mb-3 border border-3 border-white shadow-sm" 
                          style="width: 120px; height: 120px; object-fit: cover;">
-                    <h2 class="mb-1 fw-bold">{{ $jukir->nama_jukir }}</h2>
-                    <p class="text-muted mb-3 fs-6">{{ $jukir->lokasi->titik_parkir ?? '-' }} <br> {{ $jukir->lokasi->lokasi_parkir ?? '-' }}</p>
+                    <h3 class="mb-1 fw-bold text-uppercase">{{ $jukir->nama_jukir }}</h3>
+                    <p class="text-muted mb-3 fs-6 text-uppercase fw-semibold">{{ $jukir->lokasi->titik_parkir ?? '-' }} <br>
+                        {{ $jukir->lokasi->lokasi_parkir ?? '-' }}
+                    </p>
                     
                     <div class="d-flex justify-content-center gap-2 mb-3">
                         @php
@@ -121,15 +137,14 @@ new class extends Component {
                         <span class="badge bg-light-{{ $ketColor }} text-{{ $ketColor }} px-2 py-1">{{ $jukir->ket_jukir ?? 'Active' }}</span>
                         
                         @php
-                            $statusClass = $jukir->status == 'Non-Tunai' ? 'primary' : 'secondary';
+                            $statusClass = $jukir->status == 'Non-Tunai' ? 'success' : 'warning';
                         @endphp
                         <span class="badge bg-light text-{{ $statusClass }} border px-2 py-1">{{ $jukir->status ?? 'Tunai' }}</span>
                     </div>
 
                     @if($jukir->status == 'Non-Tunai')
-                        <div class="bg-light rounded p-2 text-start mt-2">
-                            <small class="text-muted d-block" style="font-size: 0.70rem; text-transform: uppercase;">Merchant</small>
-                            <span class="fw-medium text-dark"><i class="ti ti-id me-1 opacity-50"></i>{{ $jukir->merchant->merchant_name ?? '-' }}</span>
+                        <div class="bg-light rounded p-2 text-center mt-2">
+                            <span class="fs-5 fw-medium text-dark"><i class="ti ti-id me-1 opacity-50"></i>{{ $jukir->merchant->merchant_name ?? '-' }}</span>
                         </div>
                     @endif
                 </div>
@@ -153,26 +168,26 @@ new class extends Component {
                 <div class="card-body p-4 pt-3">
                     <div class="mb-3">
                         <small class="text-muted d-block mb-1">Harian</small>
-                        <span class="fw-medium fs-6">Rp {{ number_format($jukir->potensi_harian, 0, ',', '.') }}</span>
+                        <span class="fw-bold fs-5">Rp {{ number_format($jukir->potensi_harian, 0, ',', '.') }}</span>
                     </div>
                     <div class="mb-0">
                         <small class="text-muted d-block mb-1">Bulanan</small>
-                        <span class="fw-bold fs-4 text-primary">Rp {{ number_format($jukir->potensi_bulanan, 0, ',', '.') }}</span>
+                        <span class="fw-bold fs-5 text-primary">Rp {{ number_format($jukir->potensi_bulanan, 0, ',', '.') }}</span>
                     </div>
 
                     @if($jukir->tgl_pkh_upl)
                     <div class="mt-4 pt-3 border-top">
-                        <div class="d-flex align-items-center mb-2">
-                            <i class="ti ti-discount-check text-success me-2"></i>
-                            <span class="fw-medium text-success small">Uji Petik ({{ date('d M Y', strtotime($jukir->tgl_pkh_upl)) }})</span>
+                        <div class="mb-3">
+                            <i class="ti ti-discount-check text-success"></i>
+                            <span class="fw-medium text-success">Uji Petik ({{ date('d M Y', strtotime($jukir->tgl_pkh_upl)) }})</span>
                         </div>
-                        <div class="d-flex justify-content-between mb-1">
-                            <small class="text-muted">Harian</small>
-                            <small class="fw-medium">Rp {{ number_format($jukir->uji_petik, 0, ',', '.') }}</small>
+                        <div class="mb-3">
+                            <small class="text-muted d-block mb-1">Harian</small>
+                            <small class="fw-bold fs-5">Rp {{ number_format($jukir->uji_petik, 0, ',', '.') }}</small>
                         </div>
-                        <div class="d-flex justify-content-between">
-                            <small class="text-muted">Bulanan</small>
-                            <small class="fw-medium">Rp {{ number_format($jukir->potensi_bulanan_upl, 0, ',', '.') }}</small>
+                        <div class="mb-0">
+                            <small class="text-muted d-block mb-1">Bulanan</small>
+                            <small class="fw-bold fs-5 text-primary">Rp {{ number_format($jukir->potensi_bulanan_upl, 0, ',', '.') }}</small>
                         </div>
                     </div>
                     @endif
@@ -199,11 +214,15 @@ new class extends Component {
                 <div class="card-body p-4">
                     <h6 class="fw-bold mb-4 border-bottom pb-2">Informasi Personal</h6>
                     <div class="row g-3 mb-4">
-                        <div class="col-sm-6">
+                        <div class="col-sm-4">
+                            <small class="text-muted d-block mb-1">Nama Jukir</small>
+                            <span class="fw-medium">{{ $jukir->nama_jukir ?? '-' }}</span>
+                        </div>
+                        <div class="col-sm-4">
                             <small class="text-muted d-block mb-1">NIK</small>
                             <span class="fw-medium">{{ $jukir->nik_jukir ?? '-' }}</span>
                         </div>
-                        <div class="col-sm-6">
+                        <div class="col-sm-4">
                             <small class="text-muted d-block mb-1">Tempat, Tanggal Lahir</small>
                             <span class="fw-medium">{{ $jukir->tempat_lahir ?? '-' }}, {{ $jukir->tgl_lahir ? \Carbon\Carbon::parse($jukir->tgl_lahir)->translatedFormat('d M Y') : '-' }}</span>
                         </div>
@@ -217,7 +236,7 @@ new class extends Component {
                         </div>
                         <div class="col-sm-4">
                             <small class="text-muted d-block mb-1">No. HP</small>
-                            <span class="fw-medium">{{ $jukir->no_hp ?? '-' }}</span>
+                            <span class="fw-medium">{{ $jukir->telepon ?? '-' }}</span>
                         </div>
                         
                     </div>
@@ -249,12 +268,15 @@ new class extends Component {
                         <a href="{{ route('lokasi.detail', $jukir->lokasi->id) }}" class="small link-primary text-decoration-none" target="_blank">Lihat Detail Lokasi <i class="ti ti-external-link"></i></a>
                     </div>
                     <div class="row g-4">
-                        <div class="col-sm-6">
+                        <div class="col-sm-4">
                             <small class="text-muted d-block mb-1">Titik Parkir</small>
                             <span class="fw-semibold d-block text-dark">{{ $jukir->lokasi->titik_parkir ?? '-' }}</span>
-                            <span class="text-muted small">{{ $jukir->lokasi->lokasi_parkir ?? '-' }}</span>
                         </div>
-                        <div class="col-sm-6">
+                        <div class="col-sm-4">
+                            <small class="text-muted d-block mb-1">Lokasi Parkir</small>
+                            <span class="fw-semibold d-block text-dark">{{ $jukir->lokasi->lokasi_parkir ?? '-' }}</span>
+                        </div>
+                        <div class="col-sm-4">
                             <small class="text-muted d-block mb-1">Waktu Kerja</small>
                             <span class="fw-medium">{{ $jukir->waktu_kerja ?? '-' }}</span>
                         </div>
@@ -526,6 +548,17 @@ new class extends Component {
     @livewire('admin::jukir.histori.histori_jukir')
     @livewire('admin::jukir.pembantu.pembantu_jukir')
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.alert-dismissible').forEach(function (alert) {
+                setTimeout(function () {
+                    var bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                    bsAlert.close();
+                }, 3000);
+            });
+        });
+    </script>
+    
     <script>
         document.addEventListener('livewire:initialized', () => {
            @this.on('open-modal', (event) => {
