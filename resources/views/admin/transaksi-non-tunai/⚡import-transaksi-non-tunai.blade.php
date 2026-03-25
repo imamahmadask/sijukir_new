@@ -32,7 +32,37 @@ new class extends Component {
             $filename = $this->file->getClientOriginalName();
             Excel::import(new TransNonTunaiImport($filename), $this->file);
             
-            session()->flash('success', 'Data berhasil diimport.');
+            // Get unique tahun and bulan from the imported items
+            $importedData = \App\Models\TransNonTunai::where('filename', $filename)
+                ->select('tahun', 'bulan', 'info')
+                ->distinct()
+                ->get();
+            
+            foreach ($importedData as $data) {
+                $tahun = $data->tahun;
+                $bulan = $data->bulan;
+                $vendor = $data->info;
+
+                // 1. Update Summary Area
+                dispatch(new \App\Jobs\UpdateSummaryArea($tahun, $bulan));
+                // 2. Update Summary Month
+                dispatch(new \App\Jobs\UpdateSummaryMonth($tahun, $bulan));
+                // 3. Update Summary Day
+                dispatch(new \App\Jobs\UpdateSummaryDay($tahun, $bulan));
+                // 4. Update Target
+                dispatch(new \App\Jobs\UpdateTarget());
+
+                // 5. Update Summary Jukir Per Month                
+                dispatch(new \App\Jobs\UpdateSummaryJukirMonth($vendor, $tahun, $bulan));
+
+                // 6. Update Summary Korlap
+                dispatch(new \App\Jobs\UpdateSummaryKorlap($tahun, $bulan));
+            }
+
+            session()->flash('success', 'Data berhasil diimport dan summary sedang diperbarui.');
+            
+            $this->reset('file');
+
             $this->dispatch('refresh-transactions')->to('admin::transaksi-non-tunai.index-transaksi-non-tunai');
             $this->dispatch('close-modal', name: 'modalImportNonTunai');
             
