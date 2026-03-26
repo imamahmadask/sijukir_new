@@ -108,11 +108,13 @@ new class extends Component {
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-transparent border-0 py-4 px-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
                     <h5 class="mb-0 fw-bold">Daftar Transaksi Non-Tunai</h5>
-                    <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-outline-primary shadow-sm" wire:click="openImport">
-                            <i class="ti ti-upload me-1"></i> Import Excel
-                        </button>
-                    </div>
+                    @can('manageAdmin')
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-primary shadow-sm" wire:click="openImport">
+                                <i class="ti ti-upload me-1"></i> Import Excel
+                            </button>
+                        </div>
+                    @endcan
                 </div>
                 <div class="px-4 pb-3">
                     <div class="row g-3 align-items-center">

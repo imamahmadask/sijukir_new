@@ -127,9 +127,11 @@ new class extends Component {
 
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="mb-0">Daftar Titik Parkir</h5>
-                <a href="{{ route('lokasi.create') }}" class="btn btn-primary">
-                    <i class="ti ti-plus me-1"></i> Tambah Titik Parkir
-                </a>
+                @can('manageAdmin')
+                    <a href="{{ route('lokasi.create') }}" class="btn btn-primary">
+                        <i class="ti ti-plus me-1"></i> Tambah Titik Parkir
+                    </a>
+                @endcan
             </div>
 
             <div class="card tbl-card">
@@ -209,15 +211,17 @@ new class extends Component {
                                             <a href="{{ route('lokasi.detail', $item->id) }}" class="btn btn-sm btn-info" title="Detail">
                                                 <i class="ti ti-eye"></i>
                                             </a>
-                                            <a href="{{ route('lokasi.edit', $item->id) }}" class="btn btn-sm btn-warning" title="Edit">
-                                                <i class="ti ti-edit"></i>
-                                            </a>
-                                            <button type="button" class="btn btn-sm btn-danger"
-                                                wire:click="deleteLokasi({{ $item->id }})"
-                                                wire:confirm="Apakah Anda yakin ingin menghapus titik parkir ini?">
-                                                <i class="ti ti-trash"></i>
-                                            </button>
-                                        </td>
+                                            @can('manageAdmin')
+                                                <a href="{{ route('lokasi.edit', $item->id) }}" class="btn btn-sm btn-warning" title="Edit">
+                                                    <i class="ti ti-edit"></i>
+                                                </a>                                            
+                                                <button type="button" class="btn btn-sm btn-danger"
+                                                    wire:click="deleteLokasi({{ $item->id }})"
+                                                    wire:confirm="Apakah Anda yakin ingin menghapus titik parkir ini?">
+                                                    <i class="ti ti-trash"></i>
+                                                </button>
+                                            @endcan
+                                            </td>
                                     </tr>
                                 @empty
                                     <tr>

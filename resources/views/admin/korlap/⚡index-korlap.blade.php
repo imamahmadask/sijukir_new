@@ -56,11 +56,13 @@ new class extends Component {
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="mb-0">Daftar Korlap</h5>
-                <button type="button" class="btn btn-primary"
-                    wire:click="$dispatch('open-create-korlap')"
-                    data-bs-toggle="modal" data-bs-target="#createKorlapModal">
-                    <i class="ti ti-plus me-1"></i> Tambah Korlap
-                </button>
+                @can('manageAdmin')
+                    <button type="button" class="btn btn-primary"
+                        wire:click="$dispatch('open-create-korlap')"
+                        data-bs-toggle="modal" data-bs-target="#createKorlapModal">
+                        <i class="ti ti-plus me-1"></i> Tambah Korlap
+                    </button>
+                @endcan
             </div>
 
             <div class="card tbl-card">
@@ -70,7 +72,6 @@ new class extends Component {
                             <thead>
                                 <tr>
                                     <th>#</th>
-                                    <th>Foto</th>
                                     <th>Nama</th>
                                     <th>NIK</th>
                                     <th>Telepon</th>
@@ -81,16 +82,7 @@ new class extends Component {
                             <tbody>
                                 @forelse ($korlaps as $index => $item)
                                     <tr wire:key="korlap-{{ $item->id }}">
-                                        <td>{{ $index + 1 }}</td>
-                                        <td>
-                                            @if($item->foto)
-                                                <img src="{{ asset('storage/' . $item->foto) }}" class="rounded" style="width: 40px; height: 40px; object-fit: cover;">
-                                            @else
-                                                <div class="rounded bg-light d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                                    <i class="ti ti-user text-muted"></i>
-                                                </div>
-                                            @endif
-                                        </td>
+                                        <td>{{ $index + 1 }}</td>                                        
                                         <td>{{ $item->nama }}</td>
                                         <td>{{ $item->nik }}</td>
                                         <td>{{ $item->telepon }}</td>
@@ -100,16 +92,18 @@ new class extends Component {
                                             </span>
                                         </td>
                                         <td>
-                                            <button type="button" class="btn btn-sm btn-warning"
-                                                wire:click="$dispatch('open-edit-korlap', { id: {{ $item->id }} })"
-                                                data-bs-toggle="modal" data-bs-target="#editKorlapModal">
-                                                <i class="ti ti-edit"></i>
-                                            </button>
-                                            <button type="button" class="btn btn-sm btn-danger"
-                                                wire:click="deleteKorlap({{ $item->id }})"
-                                                wire:confirm="Apakah Anda yakin ingin menghapus korlap ini?">
-                                                <i class="ti ti-trash"></i>
-                                            </button>
+                                            @can('manageAdmin')
+                                                <button type="button" class="btn btn-sm btn-warning"
+                                                    wire:click="$dispatch('open-edit-korlap', { id: {{ $item->id }} })"
+                                                    data-bs-toggle="modal" data-bs-target="#editKorlapModal">
+                                                    <i class="ti ti-edit"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-danger"
+                                                    wire:click="deleteKorlap({{ $item->id }})"
+                                                    wire:confirm="Apakah Anda yakin ingin menghapus korlap ini?">
+                                                    <i class="ti ti-trash"></i>
+                                                </button>
+                                            @endcan
                                         </td>
                                     </tr>
                                 @empty

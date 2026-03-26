@@ -1,78 +1,45 @@
 <?php
 
 use Livewire\Component;
-use App\Models\ParkirBerlangganan;
-use Livewire\Attributes\On;
 use Livewire\WithPagination;
+use App\Models\Insidentil;
+use Livewire\Attributes\On;
 
 new class extends Component {
     use WithPagination;
 
     public $search = '';
     public $perPage = 10;
-    public $monthFilter;
-
     protected $paginationTheme = 'bootstrap';
 
-    public function mount()
-    {
-        $this->monthFilter = \Carbon\Carbon::now()->format('Y-m');
-    }
+    public function updatingSearch() { $this->resetPage(); }
+    public function updatingPerPage() { $this->resetPage(); }
 
-    public function updatingSearch()
-    {
-        $this->resetPage();
-    }
-
-    public function updatingMonthFilter()
-    {
-        $this->resetPage();
-    }
-
-    #[On('refresh-berlangganans')]
+    #[On('refresh-insidentil')]
     public function render()
     {
-        $query = ParkirBerlangganan::when($this->search, function($q) {
-                $q->where(function($qq) {
-                    $qq->where('nomor', 'like', '%' . $this->search . '%')
-                       ->orWhere('nama', 'like', '%' . $this->search . '%')
-                       ->orWhere('no_pol', 'like', '%' . $this->search . '%');
-                });
-            })
-            ->when($this->monthFilter, function($q) {
-                $parts = explode('-', $this->monthFilter);
-                if (count($parts) == 2) {
-                    $q->whereYear('tgl_dikeluarkan', $parts[0])
-                      ->whereMonth('tgl_dikeluarkan', $parts[1]);
-                }
+        $query = Insidentil::when($this->search, function($q) {
+            $q->where(function($qq) {
+                $qq->where('nama', 'like', '%' . $this->search . '%')
+                   ->orWhere('nama_acara', 'like', '%' . $this->search . '%')
+                   ->orWhere('nik', 'like', '%' . $this->search . '%')
+                   ->orWhere('no_surat', 'like', '%' . $this->search . '%');
             });
+        });
 
-        $berlangganans = $query->latest()->paginate($this->perPage);
+        $insidentils = $query->latest('id')->paginate($this->perPage);
 
-        return $this->view()->title('Daftar Parkir Berlangganan')->with([
-            'berlangganans' => $berlangganans
-        ]);
+        return $this->view()->title('Daftar Insidentil')->with('insidentils', $insidentils);
     }
 
-    public function createBerlangganan()
-    {
-        $this->dispatch('open-create-berlangganan')->to('admin::berlangganan.create-berlangganan');
-    }
+    public function create() { $this->dispatch('open-create-insidentil'); }
+    public function detail($id) { $this->dispatch('show-insidentil-detail', id: $id); }
+    public function edit($id) { $this->dispatch('open-edit-insidentil', id: $id); }
 
-    public function editBerlangganan($id)
+    public function delete($id)
     {
-        $this->dispatch('open-edit-berlangganan', id: $id)->to('admin::berlangganan.edit-berlangganan');
-    }
-
-    public function showDetail($id)
-    {
-        $this->dispatch('show-berlangganan-detail', id: $id)->to('admin::berlangganan.detail-berlangganan');
-    }
-
-    public function deleteBerlangganan($id)
-    {
-        ParkirBerlangganan::findOrFail($id)->delete();
-        session()->flash('success', 'Data Parkir Berlangganan berhasil dihapus.');
+        Insidentil::findOrFail($id)->delete();
+        session()->flash('success', 'Data Insidentil berhasil dihapus.');
     }
 };
 ?>
@@ -84,11 +51,11 @@ new class extends Component {
             <div class="row align-items-center">
                 <div class="col-md-12">
                     <div class="page-header-title">
-                        <h5 class="m-b-10">Parkir Berlangganan</h5>
+                        <h5 class="m-b-10">Insidentil</h5>
                     </div>
                     <ul class="breadcrumb">
                         <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
-                        <li class="breadcrumb-item"><a href="javascript:void(0)">Parkir Berlangganan</a></li>
+                        <li class="breadcrumb-item"><a href="javascript:void(0)">Insidentil</a></li>
                         <li class="breadcrumb-item" aria-current="page">Index</li>
                     </ul>
                 </div>
@@ -108,10 +75,10 @@ new class extends Component {
 
             <div class="card border-0 shadow-sm tbl-card">
                 <div class="card-header bg-transparent border-0 px-4 py-3 d-flex justify-content-between align-items-center flex-wrap gap-3">
-                    <h5 class="mb-0 fw-bold">Daftar Parkir Berlangganan</h5>
+                    <h5 class="mb-0 fw-bold">Daftar Insidentil</h5>
                     @can('manageAdmin')
-                        <button type="button" class="btn btn-primary shadow-sm" wire:click="createBerlangganan">
-                            <i class="ti ti-plus me-1"></i> Tambah Berlangganan
+                        <button type="button" class="btn btn-primary shadow-sm" wire:click="create">
+                            <i class="ti ti-plus me-1"></i> Tambah Insidentil
                         </button>
                     @endcan
                 </div>
@@ -126,13 +93,10 @@ new class extends Component {
                                 <option value="50">50 per halaman</option>
                             </select>
                         </div>
-                        <div class="col-md-3">
-                            <input type="month" class="form-control" wire:model.live="monthFilter" title="Filter Bulan">
-                        </div>
                         <div class="col-md-4 ms-auto">
-                            <div class="input-group">
+                            <div class="input-group border-0 shadow-sm rounded-1">
                                 <span class="input-group-text bg-white border-end-0"><i class="ti ti-search text-muted"></i></span>
-                                <input type="text" class="form-control border-start-0 ps-0" placeholder="Cari Nomor/Nama/Nopol..." wire:model.live.debounce.300ms="search">
+                                <input type="text" class="form-control border-start-0 ps-0" placeholder="Cari Nama / Acara ..." wire:model.live.debounce.300ms="search">
                             </div>
                         </div>
                     </div>
@@ -144,45 +108,53 @@ new class extends Component {
                             <thead class="bg-light">
                                 <tr>
                                     <th class="ps-4 py-3 text-uppercase small fw-bold text-muted">#</th>
-                                    <th class="py-3 text-uppercase small fw-bold text-muted">Nomor</th>
-                                    <th class="py-3 text-uppercase small fw-bold text-muted">Tgl Kwitansi</th>
+                                    <th class="py-3 text-uppercase small fw-bold text-muted">No Surat</th>
                                     <th class="py-3 text-uppercase small fw-bold text-muted">Nama</th>
-                                    <th class="py-3 text-uppercase small fw-bold text-muted">No Polisi</th>
+                                    <th class="py-3 text-uppercase small fw-bold text-muted">Acara</th>
+                                    <th class="py-3 text-uppercase small fw-bold text-muted">Lokasi</th>
+                                    <th class="py-3 text-uppercase small fw-bold text-muted">Tanggal Acara</th>
                                     <th class="py-3 text-uppercase small fw-bold text-muted">Jenis</th>
-                                    <th class="py-3 text-uppercase small fw-bold text-muted">Jumlah</th>
                                     <th class="py-3 text-uppercase small fw-bold text-muted text-center" width="150">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse ($berlangganans as $index => $item)
-                                    <tr wire:key="berlangganan-{{ $item->id }}">
-                                        <td class="ps-4">{{ ($berlangganans->currentPage() - 1) * $berlangganans->perPage() + $index + 1 }}</td>
-                                        <td><span class="badge bg-light-primary text-primary px-2 fw-bold">{{ $item->nomor ?? '-' }}</span></td>                                        
+                                @forelse ($insidentils as $index => $item)
+                                    <tr wire:key="insidentil-{{ $item->id }}">
+                                        <td class="ps-4">{{ ($insidentils->currentPage() - 1) * $insidentils->perPage() + $index + 1 }}</td>
+                                        <td><span class="badge bg-light-primary text-primary px-2">{{ $item->no_surat ?? '-' }}</span></td>
+                                        <td class="fw-bold">
+                                            {{ $item->nama }}
+                                            <br>
+                                            <span class="small text-muted fst-italic">{{ $item->nama_perusahaan ?? '-' }}</span>
+                                        </td>
+                                        <td>{{ $item->nama_acara ?? '-' }}</td>
+                                        <td>{{ $item->lokasi_acara ?? '-' }}</td>
                                         <td>
-                                            @if($item->tgl_dikeluarkan)
-                                                {{ \Carbon\Carbon::parse($item->tgl_dikeluarkan)->format('d M Y') }}
+                                            @if($item->tgl_awal_acara)
+                                                {{ \Carbon\Carbon::parse($item->tgl_awal_acara)->format('d M y') }}
+                                                s/d
+                                                {{ $item->tgl_akhir_acara ? \Carbon\Carbon::parse($item->tgl_akhir_acara)->format('d M y') : '-' }}
                                             @else
                                                 -
                                             @endif
                                         </td>
-                                        <td class="fw-bold">{{ $item->nama ?: $item->nama_pemilik }}</td>
-                                        <td>{{ $item->no_pol ?? '-' }}</td>
-                                        <td>{{ $item->jenis ?? '-' }}</td>
-                                        <td>Rp. {{ number_format($item->jumlah, 0, ',', '.') }}</td>
+                                        <td>
+                                            {{ $item->jenis_izin ?? '-' }}
+                                        </td>
                                         <td class="pe-4 text-center">
                                             <div class="d-flex gap-1 justify-content-center">
                                                 <button type="button" class="btn btn-sm btn-icon btn-light-info" title="Detail" 
-                                                    wire:click="showDetail('{{ $item->id }}')">
+                                                    wire:click="detail('{{ $item->id }}')">
                                                     <i class="ti ti-eye"></i>
                                                 </button>
                                                 @can('manageAdmin')
                                                     <button type="button" class="btn btn-sm btn-icon btn-light-warning" title="Edit"
-                                                        wire:click="editBerlangganan('{{ $item->id }}')">
+                                                        wire:click="edit('{{ $item->id }}')">
                                                         <i class="ti ti-edit"></i>
                                                     </button>
                                                     <button type="button" class="btn btn-sm btn-icon btn-light-danger"
                                                         wire:confirm="Apakah Anda yakin ingin menghapus data ini?"
-                                                        wire:click="deleteBerlangganan('{{ $item->id }}')">
+                                                        wire:click="delete('{{ $item->id }}')">
                                                         <i class="ti ti-trash"></i>
                                                     </button>
                                                 @endcan
@@ -191,9 +163,9 @@ new class extends Component {
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="text-center py-5 text-muted italic">
+                                        <td colspan="7" class="text-center py-5 text-muted fst-italic">
                                             <i class="ti ti-database-off fs-1 d-block mb-2"></i>
-                                            Belum ada data parkir berlangganan
+                                            Belum ada data insidentil
                                         </td>
                                     </tr>
                                 @endforelse
@@ -202,30 +174,37 @@ new class extends Component {
                     </div>
                 </div>
                 <div class="card-footer bg-transparent border-0 px-4 py-3">
-                    {{ $berlangganans->links() }}
+                    {{ $insidentils->links() }}
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Modal Components -->
-    @livewire('admin::berlangganan.create-berlangganan')
-    @livewire('admin::berlangganan.edit-berlangganan')
-    @livewire('admin::berlangganan.detail-berlangganan')
+    @livewire('admin::insidentil.create-insidentil')
+    @livewire('admin::insidentil.edit-insidentil')
+    @livewire('admin::insidentil.detail-insidentil')
 
     <script>
         document.addEventListener('livewire:initialized', () => {
            @this.on('open-modal', (event) => {
-               const modal = new bootstrap.Modal(document.getElementById(event.name));
+               const modalName = event.name || event[0]?.name;
+               const modal = new bootstrap.Modal(document.getElementById(modalName));
                modal.show();
            });
 
            @this.on('close-modal', (event) => {
-               const modalElement = document.getElementById(event.name);
-               const modal = bootstrap.Modal.getInstance(modalElement);
-               if (modal) {
+               const modalName = event.name || event[0]?.name;
+               const modalElement = document.getElementById(modalName);
+               if(modalElement) {
+                   const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
                    modal.hide();
                }
+               // Clean up backdrop if stuck
+               document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+               document.body.classList.remove('modal-open');
+               document.body.style.overflow = '';
+               document.body.style.paddingRight = '';
            });
         });
     </script>

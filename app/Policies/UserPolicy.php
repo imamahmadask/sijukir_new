@@ -16,13 +16,13 @@ class UserPolicy
 
     public function manageAll(User $user): bool
     {
-        return in_array($user->role, ['superadmin']);
+        return in_array($user->role, ['admin']);
     }
 
     public function manageAdmin(User $user): bool
     {
-        // superadmin & admin selalu boleh
-        if (in_array($user->role, ['superadmin', 'admin'])) {
+        // admin & user selalu boleh
+        if (in_array($user->role, ['admin', 'user'])) {
             return true;
         }        
 
@@ -31,8 +31,8 @@ class UserPolicy
 
     public function manageKorlap(User $user): bool
     {
-        // superadmin & admin selalu boleh
-        if (in_array($user->role, ['superadmin', 'admin', 'korlap'])) {
+        // admin & user & korlap selalu boleh
+        if (in_array($user->role, ['admin', 'user', 'korlap'])) {
             return true;
         }        
 

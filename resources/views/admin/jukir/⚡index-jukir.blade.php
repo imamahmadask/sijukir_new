@@ -110,9 +110,11 @@ new class extends Component {
 
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="mb-0">Daftar Jukir</h5>
-                <a href="{{ route('jukir.create') }}" class="btn btn-primary">
-                    <i class="ti ti-plus me-1"></i> Tambah Jukir
-                </a>
+                @can('manageAdmin')
+                    <a href="{{ route('jukir.create') }}" class="btn btn-primary">
+                        <i class="ti ti-plus me-1"></i> Tambah Jukir
+                    </a>
+                @endcan
             </div>
 
             <div class="card tbl-card">
@@ -218,14 +220,16 @@ new class extends Component {
                                             <a href="{{ route('jukir.detail', $item->id) }}" class="btn btn-sm btn-info" title="Detail">
                                                 <i class="ti ti-eye"></i>
                                             </a>
-                                            <a href="{{ route('jukir.edit', $item->id) }}" class="btn btn-sm btn-warning" title="Edit">
-                                                <i class="ti ti-edit"></i>
-                                            </a>
-                                            <button type="button" class="btn btn-sm btn-danger"
-                                                wire:confirm="Apakah Anda yakin ingin menghapus jukir ini?"
-                                                wire:click="deleteJukir({{ $item->id }})">
-                                                <i class="ti ti-trash"></i>
-                                            </button>
+                                            @can('manageAdmin')
+                                                <a href="{{ route('jukir.edit', $item->id) }}" class="btn btn-sm btn-warning" title="Edit">
+                                                    <i class="ti ti-edit"></i>
+                                                </a>                                            
+                                                <button type="button" class="btn btn-sm btn-danger"
+                                                    wire:confirm="Apakah Anda yakin ingin menghapus jukir ini?"
+                                                    wire:click="deleteJukir({{ $item->id }})">
+                                                    <i class="ti ti-trash"></i>
+                                                </button>
+                                            @endcan
                                         </td>
                                     </tr>
                                 @empty

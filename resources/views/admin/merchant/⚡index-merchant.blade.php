@@ -102,9 +102,11 @@ new class extends Component {
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-transparent border-0 py-4 px-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
                     <h5 class="mb-0 fw-bold">Daftar Merchant</h5>
-                    <button type="button" class="btn btn-primary shadow-sm" wire:click="createMerchant">
-                        <i class="ti ti-plus me-1"></i> Tambah Merchant
-                    </button>
+                    @can('manageAdmin')
+                        <button type="button" class="btn btn-primary shadow-sm" wire:click="createMerchant">
+                            <i class="ti ti-plus me-1"></i> Tambah Merchant
+                        </button>
+                    @endcan
                 </div>
                 
                 <!-- Filters -->
@@ -161,15 +163,17 @@ new class extends Component {
                                                     wire:click="showDetail('{{ $item->id }}')">
                                                     <i class="ti ti-eye"></i>
                                                 </button>
-                                                <button type="button" class="btn btn-sm btn-icon btn-light-warning" title="Edit"
-                                                    wire:click="editMerchant('{{ $item->id }}')">
-                                                    <i class="ti ti-edit"></i>
-                                                </button>
-                                                <button type="button" class="btn btn-sm btn-icon btn-light-danger"
-                                                    wire:confirm="Apakah Anda yakin ingin menghapus merchant ini?"
-                                                    wire:click="deleteMerchant('{{ $item->id }}')">
-                                                    <i class="ti ti-trash"></i>
-                                                </button>
+                                                @can('manageAdmin')
+                                                    <button type="button" class="btn btn-sm btn-icon btn-light-warning" title="Edit"
+                                                        wire:click="editMerchant('{{ $item->id }}')">
+                                                        <i class="ti ti-edit"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-icon btn-light-danger"
+                                                        wire:confirm="Apakah Anda yakin ingin menghapus merchant ini?"
+                                                        wire:click="deleteMerchant('{{ $item->id }}')">
+                                                        <i class="ti ti-trash"></i>
+                                                    </button>
+                                                @endcan
                                             </div>
                                         </td>
                                     </tr>

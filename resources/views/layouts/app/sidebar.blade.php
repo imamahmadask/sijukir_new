@@ -77,8 +77,8 @@
                         <span class="pc-mtext">Berlangganan</span>
                     </a>
                 </li>
-                <li class="pc-item">
-                    <a href="../pages/register.html" class="pc-link">
+                <li class="pc-item {{ request()->routeIs('insidentil.*') ? 'active' : '' }}">
+                    <a href="{{ route('insidentil.index') }}" class="pc-link">
                         <span class="pc-micon"><i class="ti ti-box"></i></span>
                         <span class="pc-mtext">Insidentil</span>
                     </a>
@@ -94,7 +94,7 @@
                         <span class="pc-mtext">Merchant</span>
                     </a>
                 </li>
-                @if(in_array(auth()->user()->role, ['superadmin', 'admin']))
+                @if(in_array(auth()->user()->role, ['user', 'admin']))
                 <li class="pc-item {{ request()->routeIs('korlap.index') ? 'active' : '' }}">
                     <a href="{{ route('korlap.index') }}" class="pc-link">
                         <span class="pc-micon"><i class="ti ti-users"></i></span>
@@ -114,7 +114,7 @@
                         <span class="pc-mtext">Peringatan</span>
                     </a>
                 </li>
-                @if(auth()->user()->role == 'superadmin')
+                @can('manageAll')
                 <li class="pc-item {{ request()->routeIs('users.index') ? 'active' : '' }}">
                     <a href="{{ route('users.index') }}" class="pc-link">
                         <span class="pc-micon"><i class="ti ti-user-plus"></i></span>

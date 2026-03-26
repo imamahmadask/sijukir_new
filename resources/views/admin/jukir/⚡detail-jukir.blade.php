@@ -136,10 +136,16 @@ new class extends Component {
                         @endphp
                         <span class="badge bg-light-{{ $ketColor }} text-{{ $ketColor }} px-2 py-1">{{ $jukir->ket_jukir ?? 'Active' }}</span>
                         
-                        @php
-                            $statusClass = $jukir->status == 'Non-Tunai' ? 'success' : 'warning';
-                        @endphp
-                        <span class="badge bg-light text-{{ $statusClass }} border px-2 py-1">{{ $jukir->status ?? 'Tunai' }}</span>
+                        @if($jukir->ket_jukir != 'Non Active')                            
+                            @php
+                                $statusClass = $jukir->status == 'Non-Tunai' ? 'success' : 'warning';
+                            @endphp
+                            <span class="badge bg-light text-{{ $statusClass }} border px-2 py-1">{{ $jukir->status ?? 'Tunai' }}</span>
+                        @endif
+                        
+                        @if($jukir->ket_jukir == 'Non Active')
+                            <span class="badge bg-light text-danger border px-2 py-1">{{ $jukir->tgl_nonactive ? date('d/m/Y', strtotime($jukir->tgl_nonactive)) : '-' }}</span>
+                        @endif
                     </div>
 
                     @if($jukir->status == 'Non-Tunai')
@@ -314,24 +320,15 @@ new class extends Component {
                     <div class="card border-0 shadow-sm mb-4 h-100">
                         <div class="card-body p-4">
                             <h6 class="fw-bold mb-4 border-bottom pb-2">Informasi Legal</h6>
-                            <div class="mb-3">
-                                <small class="text-muted d-block mb-1">No. Perjanjian</small>
-                                <span class="fw-medium text-dark">{{ $jukir->no_perjanjian ?? '-' }}</span>
-                            </div>
                             <div class="row g-3 mb-3">
                                 <div class="col-6">
-                                    <small class="text-muted d-block mb-1">Tgl Mulai</small>
-                                    <span class="fw-medium">{{ $jukir->tgl_perjanjian ? date('d/m/Y', strtotime($jukir->tgl_perjanjian)) : '-' }}</span>
+                                    <small class="text-muted d-block mb-1">No. Perjanjian</small>
+                                    <span class="fw-medium">{{ $jukir->no_perjanjian ?? '-' }}</span>
                                 </div>
                                 <div class="col-6">
-                                    <small class="text-muted d-block mb-1">Tgl Akhir</small>
-                                    @php
-                                        $isExpired = $jukir->tgl_akhir_perjanjian && strtotime($jukir->tgl_akhir_perjanjian) < time();
-                                    @endphp
-                                    <span class="fw-medium {{ $isExpired ? 'text-danger fw-bold' : '' }}">
-                                        {{ $jukir->tgl_akhir_perjanjian ? date('d/m/Y', strtotime($jukir->tgl_akhir_perjanjian)) : '-' }}
-                                    </span>
-                                </div>
+                                    <small class="text-muted d-block mb-1">Tgl Perjanjian</small>
+                                    <span class="fw-medium">{{ $jukir->tgl_perjanjian ? date('d/m/Y', strtotime($jukir->tgl_perjanjian)) : '-' }}</span>
+                                </div>                                
                                 <div class="col-6">
                                     <small class="text-muted d-block mb-1">Tgl Awal Taping</small>
                                     <span class="fw-medium">{{ $jukir->tgl_terbit_qr ? date('d/m/Y', strtotime($jukir->tgl_terbit_qr)) : '-' }}</span>
@@ -353,9 +350,11 @@ new class extends Component {
                         <div class="card-header bg-white border-bottom-0 pt-4 px-4 pb-0">
                             <div class="d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0 fw-bold"><i class="ti ti-history me-1"></i> Histori Jukir</h6>
-                                <button type="button" class="btn btn-sm btn-primary" wire:click="openCreateHistori">
-                                    <i class="ti ti-plus me-1"></i> Tambah
-                                </button>
+                                @can('manageAdmin')
+                                    <button type="button" class="btn btn-sm btn-primary" wire:click="openCreateHistori">
+                                        <i class="ti ti-plus me-1"></i> Tambah
+                                    </button>
+                                @endcan
                             </div>
                         </div>
                         <div class="card-body p-4 mt-1">
@@ -430,9 +429,11 @@ new class extends Component {
                         <div class="card-header bg-white border-bottom-0 pt-4 px-4 pb-0">
                             <div class="d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0 fw-bold"><i class="ti ti-users me-1"></i> Jukir Pembantu</h6>
-                                <button type="button" class="btn btn-sm btn-primary" wire:click="openCreatePembantu">
-                                    <i class="ti ti-plus me-1"></i> Tambah
-                                </button>
+                                @can('manageAdmin')
+                                    <button type="button" class="btn btn-sm btn-primary" wire:click="openCreatePembantu">
+                                        <i class="ti ti-plus me-1"></i> Tambah
+                                    </button>
+                                @endcan
                             </div>
                         </div>
                         <div class="card-body p-0 mt-3">

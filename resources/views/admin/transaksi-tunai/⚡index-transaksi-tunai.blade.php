@@ -145,9 +145,11 @@ new class extends Component {
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-transparent border-0 px-4 py-3 d-flex justify-content-between align-items-center flex-wrap gap-3">
                     <h5 class="mb-0 fw-bold">Daftar Transaksi Tunai</h5>
-                    <button type="button" class="btn btn-primary shadow-sm text-nowrap" wire:click="createTransaction">
-                        <i class="ti ti-plus me-1"></i> Tambah Transaksi
-                    </button>
+                    @can('manageAdmin')
+                        <button type="button" class="btn btn-primary shadow-sm text-nowrap" wire:click="createTransaction">
+                            <i class="ti ti-plus me-1"></i> Tambah Transaksi
+                        </button>
+                    @endcan
                 </div>
                 
                 <!-- Filters -->
@@ -217,15 +219,17 @@ new class extends Component {
                                                     wire:click="showDetail('{{ $item->id }}')">
                                                     <i class="ti ti-eye"></i>
                                                 </button>
-                                                <button type="button" class="btn btn-sm btn-icon btn-light-warning" title="Edit"
-                                                    wire:click="editTransaction('{{ $item->id }}')">
-                                                    <i class="ti ti-edit"></i>
-                                                </button>
-                                                <button type="button" class="btn btn-sm btn-icon btn-light-danger"
-                                                    wire:confirm="Apakah Anda yakin ingin menghapus transaksi ini?"
-                                                    wire:click="deleteTransaction('{{ $item->id }}')">
-                                                    <i class="ti ti-trash"></i>
-                                                </button>
+                                                @can('manageAdmin')
+                                                    <button type="button" class="btn btn-sm btn-icon btn-light-warning" title="Edit"
+                                                        wire:click="editTransaction('{{ $item->id }}')">
+                                                        <i class="ti ti-edit"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-icon btn-light-danger"
+                                                        wire:confirm="Apakah Anda yakin ingin menghapus transaksi ini?"
+                                                        wire:click="deleteTransaction('{{ $item->id }}')">
+                                                        <i class="ti ti-trash"></i>
+                                                    </button>
+                                                @endcan
                                             </div>
                                         </td>
                                     </tr>
