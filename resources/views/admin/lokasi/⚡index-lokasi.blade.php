@@ -3,6 +3,8 @@
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Lokasi;
+use App\Models\Area;
+use App\Models\Korlap;
 use Livewire\Attributes\On;
 
 new class extends Component {
@@ -11,8 +13,32 @@ new class extends Component {
     protected $paginationTheme = 'bootstrap';
 
     public $search = '';
+    public $areaFilter = '';
+    public $korlapFilter = '';
+    public $isActiveFilter = '';
+    public $perPage = 10;
 
     public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingAreaFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingKorlapFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingIsActiveFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingPerPage()
     {
         $this->resetPage();
     }
@@ -34,18 +60,32 @@ new class extends Component {
         return [
             'lokasis' => Lokasi::with(['area', 'kelurahan', 'korlap'])
                 ->when($this->search, function ($query) {
-                    $query->where('titik_parkir', 'like', '%' . $this->search . '%')
-                        ->orWhere('lokasi_parkir', 'like', '%' . $this->search . '%')
-                        ->orWhereHas('area', function ($q) {
-                            $q->where('Kecamatan', 'like', '%' . $this->search . '%');
-                        })
-                        ->orWhereHas('kelurahan', function ($q) {
-                            $q->where('kelurahan', 'like', '%' . $this->search . '%');
-                        })
-                        ->orWhereHas('korlap', function ($q) {
-                            $q->where('nama', 'like', '%' . $this->search . '%');
-                        });
-                })->paginate(10),
+                    $query->where(function($qq) {
+                        $qq->where('titik_parkir', 'like', '%' . $this->search . '%')
+                           ->orWhere('lokasi_parkir', 'like', '%' . $this->search . '%')
+                           ->orWhereHas('area', function ($q) {
+                               $q->where('Kecamatan', 'like', '%' . $this->search . '%');
+                           })
+                           ->orWhereHas('kelurahan', function ($q) {
+                               $q->where('kelurahan', 'like', '%' . $this->search . '%');
+                           })
+                           ->orWhereHas('korlap', function ($q) {
+                               $q->where('nama', 'like', '%' . $this->search . '%');
+                           });
+                    });
+                })
+                ->when($this->areaFilter !== '', function ($query) {
+                    $query->where('area_id', $this->areaFilter);
+                })
+                ->when($this->korlapFilter !== '', function ($query) {
+                    $query->where('korlap_id', $this->korlapFilter);
+                })
+                ->when($this->isActiveFilter !== '', function ($query) {
+                    $query->where('is_active', $this->isActiveFilter);
+                })
+                ->paginate($this->perPage),
+            'areas' => Area::orderBy('Kecamatan', 'asc')->get(),
+            'korlaps' => Korlap::orderBy('nama', 'asc')->get()
         ];
     }
 
@@ -93,13 +133,50 @@ new class extends Component {
             </div>
 
             <div class="card tbl-card">
-                <div class="card-body">                    
-                    <div class="d-flex justify-content-md-end mb-3">
-                        <div style="min-width: 250px;">
-                            <input type="text" wire:model.live.debounce.300ms="search" class="form-control" placeholder="Cari Titik/Area/Korlap...">
+                <!-- Filters -->
+                <div class="card-header bg-transparent border-0 px-4 pb-3 pt-3">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-2">
+                             <select class="form-select" wire:model.live="perPage">
+                                <option value="10">10 per halaman</option>
+                                <option value="25">25 per halaman</option>
+                                <option value="50">50 per halaman</option>
+                                <option value="100">100 per halaman</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select" wire:model.live="areaFilter">
+                                <option value="">Semua Area</option>
+                                @foreach($areas as $area)
+                                    <option value="{{ $area->id }}">{{ $area->Kecamatan }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select" wire:model.live="korlapFilter">
+                                <option value="">Semua Korlap</option>
+                                @foreach($korlaps as $korlap)
+                                    <option value="{{ $korlap->id }}">{{ $korlap->nama }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select" wire:model.live="isActiveFilter">
+                                <option value="">Semua Status</option>
+                                <option value="1">Aktif</option>
+                                <option value="0">Tidak Aktif</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 ms-auto">
+                            <div class="input-group border-0 shadow-sm rounded-1">
+                                <span class="input-group-text bg-white border-end-0"><i class="ti ti-search text-muted"></i></span>
+                                <input type="text" class="form-control border-start-0 ps-0" placeholder="Cari Titik/Area/Korlap..." wire:model.live.debounce.300ms="search">
+                            </div>
                         </div>
                     </div>
-                    
+                </div>
+
+                <div class="card-body p-0">                    
                     <div class="table-responsive">
                         <table class="table table-hover table-borderless mb-0 align-middle">
                             <thead>
@@ -150,9 +227,9 @@ new class extends Component {
                             </tbody>
                         </table>
                     </div>
-                    <div class="mt-3">
-                        {{ $lokasis->links() }}
-                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0 px-4 py-3">
+                    {{ $lokasis->links() }}
                 </div>
             </div>
         </div>

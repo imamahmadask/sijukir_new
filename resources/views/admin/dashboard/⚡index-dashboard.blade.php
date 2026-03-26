@@ -12,6 +12,8 @@ use App\Models\ParkirBerlangganan;
 use Carbon\Carbon;
 
 new class extends Component {
+    public $selectedYear;
+
     public $totalJukir;
     public $jukirActive;
     public $jukirPending;
@@ -30,9 +32,6 @@ new class extends Component {
     public $jukirTunai;
     public $jukirNonTunai;
 
-    public $recentTransTunai;
-    public $recentTransNonTunai;
-
     public $areaStats;
 
     // Monthly chart data
@@ -42,7 +41,19 @@ new class extends Component {
 
     public function mount()
     {
+        $this->selectedYear = Carbon::now()->year;
         $this->loadStats();
+    }
+
+    public function updatedSelectedYear()
+    {
+        $this->loadStats();
+        
+        $this->dispatch('update-charts', 
+            labels: $this->monthlyTunaiLabels,
+            tunai: $this->monthlyTunaiData,
+            nontunai: $this->monthlyNonTunaiData
+        );
     }
 
     public function loadStats()
@@ -65,21 +76,10 @@ new class extends Component {
         $this->totalBerlangganan = ParkirBerlangganan::count();
 
         // Transaction stats
-        $this->totalTransTunai = TransTunai::count();
-        $this->sumTransTunai = TransTunai::sum('jumlah_transaksi');
-        $this->totalTransNonTunai = TransNonTunai::count();
-        $this->sumTransNonTunai = TransNonTunai::sum('total_nilai');
-
-        // Recent transactions
-        $this->recentTransTunai = TransTunai::with(['jukir', 'area'])
-            ->latest('tgl_transaksi')
-            ->take(5)
-            ->get();
-
-        $this->recentTransNonTunai = TransNonTunai::with(['area'])
-            ->latest('tgl_transaksi')
-            ->take(5)
-            ->get();
+        $this->totalTransTunai = TransTunai::whereYear('tgl_transaksi', $this->selectedYear)->count();
+        $this->sumTransTunai = TransTunai::whereYear('tgl_transaksi', $this->selectedYear)->sum('jumlah_transaksi');
+        $this->totalTransNonTunai = TransNonTunai::whereYear('tgl_transaksi', $this->selectedYear)->count();
+        $this->sumTransNonTunai = TransNonTunai::whereYear('tgl_transaksi', $this->selectedYear)->sum('total_nilai');
 
         // Area stats (top 5 areas by jukir count)
         $this->areaStats = Area::withCount(['jukirs', 'lokasis', 'merchants'])
@@ -87,21 +87,21 @@ new class extends Component {
             ->take(5)
             ->get();
 
-        // Monthly chart data (last 6 months)
+        // Monthly chart data (12 months of selectedYear)
         $months = collect();
-        for ($i = 5; $i >= 0; $i--) {
-            $months->push(Carbon::now()->subMonths($i));
+        for ($i = 1; $i <= 12; $i++) {
+            $months->push(Carbon::createFromDate($this->selectedYear, $i, 1));
         }
 
-        $this->monthlyTunaiLabels = $months->map(fn($m) => $m->translatedFormat('M Y'))->toArray();
+        $this->monthlyTunaiLabels = $months->map(fn($m) => $m->translatedFormat('M'))->toArray();
         $this->monthlyTunaiData = $months->map(function($m) {
-            return TransTunai::whereYear('tgl_transaksi', $m->year)
+            return TransTunai::whereYear('tgl_transaksi', $this->selectedYear)
                 ->whereMonth('tgl_transaksi', $m->month)
                 ->sum('jumlah_transaksi');
         })->toArray();
 
         $this->monthlyNonTunaiData = $months->map(function($m) {
-            return TransNonTunai::whereYear('tgl_transaksi', $m->year)
+            return TransNonTunai::whereYear('tgl_transaksi', $this->selectedYear)
                 ->whereMonth('tgl_transaksi', $m->month)
                 ->sum('total_nilai');
         })->toArray();
@@ -119,7 +119,7 @@ new class extends Component {
     <div class="page-header">
         <div class="page-block">
             <div class="row align-items-center">
-                <div class="col-md-12">
+                <div class="col-md-8">
                     <div class="page-header-title">
                         <h5 class="m-b-10">Dashboard</h5>
                     </div>
@@ -127,6 +127,17 @@ new class extends Component {
                         <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                         <li class="breadcrumb-item" aria-current="page">Dashboard</li>
                     </ul>
+                </div>
+                <div class="col-md-4 text-md-end text-start mt-3 mt-md-0">
+                    <div class="d-inline-flex align-items-center bg-white border px-3 py-2 rounded shadow-sm">
+                        <i class="ti ti-calendar text-primary me-2 f-18"></i>
+                        <select wire:model.live="selectedYear" class="form-select border-0 shadow-none p-0 py-1 pe-4 cursor-pointer bg-transparent fw-bold text-dark w-auto">
+                            @php $currentYear = \Carbon\Carbon::now()->year; @endphp
+                            @for($i = $currentYear; $i >= $currentYear - 5; $i--)
+                                <option value="{{ $i }}">{{ $i }}</option>
+                            @endfor
+                        </select>
+                    </div>
                 </div>
             </div>
         </div>
@@ -262,8 +273,8 @@ new class extends Component {
 
         <!-- ============ Chart: Monthly Transactions ============ -->
         <div class="col-md-12 col-xl-8">
-            <h5 class="mb-3">Grafik Pendapatan (6 Bulan Terakhir)</h5>
-            <div class="card border-0 shadow-sm">
+            <h5 class="mb-3">Grafik Pendapatan (Tahun {{ $selectedYear }})</h5>
+            <div class="card border-0 shadow-sm" wire:ignore>
                 <div class="card-body">
                     <div id="monthly-transaction-chart"></div>
                 </div>
@@ -400,81 +411,7 @@ new class extends Component {
             </div>
         </div>
 
-        <!-- ============ Recent Transaksi Tunai ============ -->
-        <div class="col-md-12 col-xl-6">
-            <h5 class="mb-3">Transaksi Tunai Terbaru</h5>
-            <div class="card border-0 shadow-sm tbl-card">
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover table-borderless mb-0 align-middle">
-                            <thead class="bg-light">
-                                <tr>
-                                    <th class="ps-4 py-3 text-uppercase small fw-bold text-muted">Tanggal</th>
-                                    <th class="py-3 text-uppercase small fw-bold text-muted">Jukir</th>
-                                    <th class="py-3 text-uppercase small fw-bold text-muted">Area</th>
-                                    <th class="py-3 text-uppercase small fw-bold text-muted text-end pe-4">Jumlah</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($recentTransTunai as $item)
-                                <tr>
-                                    <td class="ps-4">{{ $item->tgl_transaksi ? \Carbon\Carbon::parse($item->tgl_transaksi)->format('d M Y') : '-' }}</td>
-                                    <td>{{ $item->jukir->nama_jukir ?? '-' }}</td>
-                                    <td><span class="badge bg-light-info">{{ $item->area->Kecamatan ?? '-' }}</span></td>
-                                    <td class="text-end pe-4 fw-bold text-success">Rp {{ number_format($item->jumlah_transaksi, 0, ',', '.') }}</td>
-                                </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="4" class="text-center py-4 text-muted">
-                                        <i class="ti ti-database-off fs-3 d-block mb-2"></i>
-                                        Belum ada data
-                                    </td>
-                                </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <!-- ============ Recent Transaksi Non-Tunai ============ -->
-        <div class="col-md-12 col-xl-6">
-            <h5 class="mb-3">Transaksi Non-Tunai Terbaru</h5>
-            <div class="card border-0 shadow-sm tbl-card">
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover table-borderless mb-0 align-middle">
-                            <thead class="bg-light">
-                                <tr>
-                                    <th class="ps-4 py-3 text-uppercase small fw-bold text-muted">Tanggal</th>
-                                    <th class="py-3 text-uppercase small fw-bold text-muted">Merchant</th>
-                                    <th class="py-3 text-uppercase small fw-bold text-muted">Area</th>
-                                    <th class="py-3 text-uppercase small fw-bold text-muted text-end pe-4">Nilai</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($recentTransNonTunai as $item)
-                                <tr>
-                                    <td class="ps-4">{{ $item->tgl_transaksi ? \Carbon\Carbon::parse($item->tgl_transaksi)->format('d M Y') : '-' }}</td>
-                                    <td>{{ $item->merchant_name ?? '-' }}</td>
-                                    <td><span class="badge bg-light-info">{{ $item->area->Kecamatan ?? '-' }}</span></td>
-                                    <td class="text-end pe-4 fw-bold text-primary">Rp {{ number_format($item->total_nilai, 0, ',', '.') }}</td>
-                                </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="4" class="text-center py-4 text-muted">
-                                        <i class="ti ti-database-off fs-3 d-block mb-2"></i>
-                                        Belum ada data
-                                    </td>
-                                </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
 
     </div>
     <!-- [ Main Content ] end -->
@@ -484,6 +421,8 @@ new class extends Component {
     <script>
         document.addEventListener('livewire:navigated', initDashboardCharts);
         document.addEventListener('DOMContentLoaded', initDashboardCharts);
+
+        let monthlyChart;
 
         function initDashboardCharts() {
             // ========== Monthly Transaction Chart ==========
@@ -550,7 +489,7 @@ new class extends Component {
                     }
                 };
 
-                var monthlyChart = new ApexCharts(monthlyEl, monthlyOptions);
+                monthlyChart = new ApexCharts(monthlyEl, monthlyOptions);
                 monthlyChart.render();
             }
 
@@ -601,6 +540,20 @@ new class extends Component {
                 jukirChart.render();
             }
         }
+
+        document.addEventListener('livewire:initialized', () => {
+            Livewire.on('update-charts', ({ labels, tunai, nontunai }) => {
+                if(monthlyChart) {
+                    monthlyChart.updateSeries([
+                        { name: 'Tunai', data: tunai },
+                        { name: 'Non-Tunai', data: nontunai }
+                    ]);
+                    monthlyChart.updateOptions({
+                        xaxis: { categories: labels }
+                    });
+                }
+            });
+        });
     </script>
     <!-- [Page Specific JS] end -->
 </div>

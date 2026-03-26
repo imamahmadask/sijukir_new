@@ -10,10 +10,21 @@ new class extends Component {
 
     public $search = '';
     public $perPage = 10;
+    public $monthFilter;
 
     protected $paginationTheme = 'bootstrap';
 
+    public function mount()
+    {
+        $this->monthFilter = \Carbon\Carbon::now()->format('Y-m');
+    }
+
     public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingMonthFilter()
     {
         $this->resetPage();
     }
@@ -22,9 +33,18 @@ new class extends Component {
     public function render()
     {
         $query = ParkirBerlangganan::when($this->search, function($q) {
-                $q->where('nomor', 'like', '%' . $this->search . '%')
-                  ->orWhere('nama', 'like', '%' . $this->search . '%')
-                  ->orWhere('no_pol', 'like', '%' . $this->search . '%');
+                $q->where(function($qq) {
+                    $qq->where('nomor', 'like', '%' . $this->search . '%')
+                       ->orWhere('nama', 'like', '%' . $this->search . '%')
+                       ->orWhere('no_pol', 'like', '%' . $this->search . '%');
+                });
+            })
+            ->when($this->monthFilter, function($q) {
+                $parts = explode('-', $this->monthFilter);
+                if (count($parts) == 2) {
+                    $q->whereYear('tgl_dikeluarkan', $parts[0])
+                      ->whereMonth('tgl_dikeluarkan', $parts[1]);
+                }
             });
 
         $berlangganans = $query->latest()->paginate($this->perPage);
@@ -104,10 +124,13 @@ new class extends Component {
                                 <option value="50">50 per halaman</option>
                             </select>
                         </div>
+                        <div class="col-md-3">
+                            <input type="month" class="form-control" wire:model.live="monthFilter" title="Filter Bulan">
+                        </div>
                         <div class="col-md-4 ms-auto">
                             <div class="input-group">
                                 <span class="input-group-text bg-white border-end-0"><i class="ti ti-search text-muted"></i></span>
-                                <input type="text" class="form-control border-start-0 ps-0" placeholder="Cari Nomor/Nama/Nopol..." wire:model.live="search">
+                                <input type="text" class="form-control border-start-0 ps-0" placeholder="Cari Nomor/Nama/Nopol..." wire:model.live.debounce.300ms="search">
                             </div>
                         </div>
                     </div>
@@ -120,11 +143,11 @@ new class extends Component {
                                 <tr>
                                     <th class="ps-4 py-3 text-uppercase small fw-bold text-muted">#</th>
                                     <th class="py-3 text-uppercase small fw-bold text-muted">Nomor</th>
-                                    <th class="py-3 text-uppercase small fw-bold text-muted">Status</th>
-                                    <th class="py-3 text-uppercase small fw-bold text-muted">Jenis</th>
+                                    <th class="py-3 text-uppercase small fw-bold text-muted">Tgl Kwitansi</th>
                                     <th class="py-3 text-uppercase small fw-bold text-muted">Nama</th>
                                     <th class="py-3 text-uppercase small fw-bold text-muted">No Polisi</th>
-                                    <th class="py-3 text-uppercase small fw-bold text-muted">Tgl Kwitansi</th>
+                                    <th class="py-3 text-uppercase small fw-bold text-muted">Jenis</th>
+                                    <th class="py-3 text-uppercase small fw-bold text-muted">Jumlah</th>
                                     <th class="py-3 text-uppercase small fw-bold text-muted text-center" width="150">Aksi</th>
                                 </tr>
                             </thead>
@@ -132,21 +155,7 @@ new class extends Component {
                                 @forelse ($berlangganans as $index => $item)
                                     <tr wire:key="berlangganan-{{ $item->id }}">
                                         <td class="ps-4">{{ ($berlangganans->currentPage() - 1) * $berlangganans->perPage() + $index + 1 }}</td>
-                                        <td><span class="badge bg-light-primary text-primary px-2 fw-bold">{{ $item->nomor ?? '-' }}</span></td>
-                                        <td>
-                                            @if($item->status == 'Berkala')
-                                                <span class="badge bg-light-success">{{ $item->status }}</span>
-                                            @elseif($item->status == 'Numpang Uji')
-                                                <span class="badge bg-light-info">{{ $item->status }}</span>
-                                            @elseif($item->status)
-                                                <span class="badge bg-light-secondary">{{ $item->status }}</span>
-                                            @else
-                                                -
-                                            @endif
-                                        </td>
-                                        <td>{{ $item->jenis ?? '-' }}</td>
-                                        <td class="fw-bold">{{ $item->nama ?: $item->nama_pemilik }}</td>
-                                        <td>{{ $item->no_pol ?? '-' }}</td>
+                                        <td><span class="badge bg-light-primary text-primary px-2 fw-bold">{{ $item->nomor ?? '-' }}</span></td>                                        
                                         <td>
                                             @if($item->tgl_dikeluarkan)
                                                 {{ \Carbon\Carbon::parse($item->tgl_dikeluarkan)->format('d M Y') }}
@@ -154,6 +163,10 @@ new class extends Component {
                                                 -
                                             @endif
                                         </td>
+                                        <td class="fw-bold">{{ $item->nama ?: $item->nama_pemilik }}</td>
+                                        <td>{{ $item->no_pol ?? '-' }}</td>
+                                        <td>{{ $item->jenis ?? '-' }}</td>
+                                        <td>Rp. {{ number_format($item->jumlah, 0, ',', '.') }}</td>
                                         <td class="pe-4 text-center">
                                             <div class="d-flex gap-1 justify-content-center">
                                                 <button type="button" class="btn btn-sm btn-icon btn-light-info" title="Detail" 

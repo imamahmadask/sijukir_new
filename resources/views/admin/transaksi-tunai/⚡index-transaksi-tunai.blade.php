@@ -1,21 +1,50 @@
 <?php
 
 use Livewire\Component;
+use Livewire\WithPagination;
 use App\Models\TransTunai;
 use Livewire\Attributes\On;
 
 new class extends Component {
-    public $transactions = [];
+    use WithPagination;
+
+    protected $paginationTheme = 'bootstrap';
+
+    public $search = '';
+    public $perPage = 10;
+    public $startDate;
+    public $endDate;
 
     public function mount()
     {
-        $this->loadTransactions();
+        $this->endDate = \Carbon\Carbon::now()->format('Y-m-d');
+        $this->startDate = \Carbon\Carbon::now()->subDays(14)->format('Y-m-d');
+    }
+
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingPerPage()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingStartDate()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingEndDate()
+    {
+        $this->resetPage();
     }
 
     #[On('refresh-transactions')]
-    public function loadTransactions()
+    public function refreshTransactions()
     {
-        $this->transactions = TransTunai::with(['jukir', 'area'])->orderBy('tgl_transaksi', 'desc')->get();
+        $this->resetPage();
     }
 
     public function createTransaction()
@@ -36,7 +65,7 @@ new class extends Component {
     public function deleteTransaction($id)
     {
         TransTunai::findOrFail($id)->delete();
-        $this->loadTransactions();
+        $this->resetPage();
         session()->flash('success', 'Transaksi berhasil dihapus.');
     }
 
@@ -48,7 +77,31 @@ new class extends Component {
 
     public function render()
     {
-        return $this->view()->title('Daftar Transaksi Tunai');
+        $query = TransTunai::with(['jukir', 'area']);
+
+        if ($this->search) {
+            $query->where(function($qq) {
+                $qq->where('no_kwitansi', 'like', '%' . $this->search . '%')
+                   ->orWhereHas('jukir', function($q) {
+                       $q->where('nama_jukir', 'like', '%' . $this->search . '%');
+                   })
+                   ->orWhereHas('area', function($q) {
+                       $q->where('Kecamatan', 'like', '%' . $this->search . '%');
+                   });
+            });
+        }
+
+        if ($this->startDate && $this->endDate) {
+            $query->whereBetween('tgl_transaksi', [$this->startDate . ' 00:00:00', $this->endDate . ' 23:59:59']);
+        } elseif ($this->startDate) {
+            $query->where('tgl_transaksi', '>=', $this->startDate . ' 00:00:00');
+        } elseif ($this->endDate) {
+            $query->where('tgl_transaksi', '<=', $this->endDate . ' 23:59:59');
+        }
+
+        $transactions = $query->orderBy('tgl_transaksi', 'desc')->paginate($this->perPage);
+
+        return $this->view()->with('transactions', $transactions)->title('Daftar Transaksi Tunai');
     }
 };
 ?>
@@ -90,11 +143,38 @@ new class extends Component {
     <div class="row">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
-                <div class="card-header bg-transparent border-0 py-4 px-4 d-flex justify-content-between align-items-center">
+                <div class="card-header bg-transparent border-0 px-4 py-3 d-flex justify-content-between align-items-center flex-wrap gap-3">
                     <h5 class="mb-0 fw-bold">Daftar Transaksi Tunai</h5>
-                    <button type="button" class="btn btn-primary shadow-sm" wire:click="createTransaction">
+                    <button type="button" class="btn btn-primary shadow-sm text-nowrap" wire:click="createTransaction">
                         <i class="ti ti-plus me-1"></i> Tambah Transaksi
                     </button>
+                </div>
+                
+                <!-- Filters -->
+                <div class="card-header bg-transparent border-0 px-4 pb-3 pt-0">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-2">
+                             <select class="form-select" wire:model.live="perPage">
+                                <option value="10">10 per halaman</option>
+                                <option value="25">25 per halaman</option>
+                                <option value="50">50 per halaman</option>
+                                <option value="100">100 per halaman</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="input-group border-0 shadow-sm rounded-1 d-flex">
+                                <input type="date" class="form-control" wire:model.live="startDate" title="Tanggal Awal">
+                                <span class="input-group-text bg-white border-start-0 border-end-0 text-muted">s/d</span>
+                                <input type="date" class="form-control" wire:model.live="endDate" title="Tanggal Akhir">
+                            </div>
+                        </div>
+                        <div class="col-md-4 ms-auto">
+                            <div class="input-group border-0 shadow-sm rounded-1">
+                                <span class="input-group-text bg-white border-end-0"><i class="ti ti-search text-muted"></i></span>
+                                <input type="text" class="form-control border-start-0 ps-0" placeholder="Cari transaksi..." wire:model.live.debounce.300ms="search">
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -113,7 +193,7 @@ new class extends Component {
                             <tbody>
                                 @forelse ($transactions as $index => $item)
                                     <tr wire:key="transaction-{{ $item->id }}">
-                                        <td class="ps-4">{{ $index + 1 }}</td>
+                                        <td class="ps-4">{{ $transactions->firstItem() + $index }}</td>
                                         <td>
                                             <span class="fw-bold">{{ $item->no_kwitansi }}</span>
                                             <br>
@@ -159,6 +239,9 @@ new class extends Component {
                                 @endforelse
                             </tbody>
                         </table>
+                    </div>
+                    <div class="px-4 py-3 border-top">
+                        {{ $transactions->links() }}
                     </div>
                 </div>
             </div>
