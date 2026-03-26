@@ -19,205 +19,298 @@ new class extends Component {
 ?>
 
 <div>
-    <!-- Header -->
-    <div class="page-header">
-        <div class="page-block">
-            <div class="row align-items-center">
-                <div class="col-md-12">
-                    <div class="page-header-title">
-                        <h5 class="m-b-10">Titik Parkir</h5>
-                    </div>
-                    <ul class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('lokasi.index') }}">Titik Parkir</a></li>
-                        <li class="breadcrumb-item" aria-current="page">Detail</li>
-                    </ul>
-                </div>
-            </div>
+    <style>
+        /* Modern Minimalist Design System for Detail Lokasi */
+        .dl-card {
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid #eef2f6;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            margin-bottom: 1.25rem;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+        .dl-card-body { padding: 1.5rem; }
+        .dl-section-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #1a202c;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+        }
+        .dl-section-title i { font-size: 1.1rem; color: #4361ee; margin-right: 8px; }
+
+        .dl-label {
+            display: block;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+        .dl-value {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #334155;
+            word-break: break-word;
+        }
+        .dl-value.bold { font-weight: 700; color: #0f172a; }
+
+        .dl-stat-box {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 1rem;
+            border: 1px solid #f1f5f9;
+        }
+
+        .dl-badge-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .dl-header {
+            margin-bottom: 1.5rem;
+            background: #fff;
+            padding: 1.25rem 1.5rem;
+            border-radius: 12px;
+            border: 1px solid #eef2f6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        }
+
+        .dl-img-container {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 1rem;
+            background: #f1f5f9;
+        }
+        .dl-img-container img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.4s ease;
+        }
+        .dl-img-container img:hover { transform: scale(1.02); }
+
+        .dl-map-container {
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #eef2f6;
+            height: 300px;
+        }
+
+        /* Responsiveness */
+        @media (max-width: 768px) {
+            .dl-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+            .col-6 { width: 100%; }
+        }
+    </style>
+
+    {{-- ===== HEADER ===== --}}
+    <div class="dl-header">
+        <div>
+            <h5 class="mb-1 fw-bold text-dark">Detail Titik Parkir</h5>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0" style="font-size: 0.78rem;">
+                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}" class="text-decoration-none">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('lokasi.index') }}" class="text-decoration-none">Titik Parkir</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Detail</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ route('lokasi.edit', $lokasi->id) }}" class="btn btn-warning shadow-sm" style="font-size:0.8rem; padding:8px 16px;">
+                <i class="ti ti-edit me-1"></i> Edit Data
+            </a>
+            <a href="{{ route('lokasi.index') }}" class="btn btn-light border shadow-sm" style="font-size:0.8rem; padding:8px 16px;">
+                <i class="ti ti-arrow-left me-1"></i> Kembali
+            </a>
         </div>
     </div>
 
-    <!-- Content -->
-    <div class="row">
-        <div class="col-lg-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5>Detail Informasi Titik Parkir</h5>
-                    <div>
-                        <a href="{{ route('lokasi.edit', $lokasi->id) }}" class="btn btn-warning btn-sm me-2">
-                            <i class="ti ti-edit"></i> Edit
-                        </a>
-                        <a href="{{ route('lokasi.index') }}" class="btn btn-secondary btn-sm">
-                            <i class="ti ti-arrow-left"></i> Kembali
-                        </a>
+    {{-- ===== CONTENT ===== --}}
+    <div class="row g-3">
+        
+        {{-- LEFT COLUMN: Details --}}
+        <div class="col-12 col-xl-8 order-2 order-xl-1">
+            <div class="row g-3">
+
+                {{-- Informasi Utama --}}
+                <div class="col-12">
+                    <div class="dl-card">
+                        <div class="dl-card-body">
+                            <div class="dl-section-title"><i class="ti ti-map-2"></i> Informasi Utama & Alamat</div>
+                            <div class="row g-4">
+                                <div class="col-12 col-md-6">
+                                    <span class="dl-label">Nama Titik Parkir</span>
+                                    <span class="dl-value bold" style="font-size: 1.1rem;">{{ $lokasi->titik_parkir }}</span>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <span class="dl-label">Lokasi (Alamat)</span>
+                                    <span class="dl-value">{{ $lokasi->lokasi_parkir }}</span>
+                                </div>
+                                <div class="col-6 col-sm-4">
+                                    <span class="dl-label">Area (Kecamatan)</span>
+                                    <span class="dl-value">{{ $lokasi->area->Kecamatan ?? '-' }}</span>
+                                </div>
+                                <div class="col-6 col-sm-4">
+                                    <span class="dl-label">Kelurahan</span>
+                                    <span class="dl-value">{{ $lokasi->kelurahan->kelurahan ?? '-' }}</span>
+                                </div>
+                                <div class="col-6 col-sm-4">
+                                    <span class="dl-label">Tanggal Registrasi</span>
+                                    <span class="dl-value">{{ \Carbon\Carbon::parse($lokasi->tgl_registrasi)->translatedFormat('d M Y') }}</span>
+                                </div>
+                                <div class="col-6 col-sm-4">
+                                    <span class="dl-label">Petugas Korlap</span>
+                                    <span class="dl-value fw-bold text-primary">{{ $lokasi->korlap->nama ?? '-' }}</span>
+                                </div>
+                                <div class="col-6 col-sm-4">
+                                    <span class="dl-label">Status</span>
+                                    <span class="dl-badge-status bg-light-{{ $lokasi->is_active === 1 ? 'success' : 'danger' }} text-{{ $lokasi->is_active === 1 ? 'success' : 'danger' }}">
+                                        {{ $lokasi->is_active === 1 ? 'Aktif' : 'Tidak Aktif' }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <!-- Kolom Kiri -->
-                        <div class="col-md-8">
-                            <table class="table table-borderless table-striped">
-                                <tbody>
-                                    <!-- Informasi Utama -->
-                                    <tr>
-                                        <th style="width: 30%;">Nama Titik Parkir</th>
-                                        <td>: {{ $lokasi->titik_parkir }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Lokasi (Alamat)</th>
-                                        <td>: {{ $lokasi->lokasi_parkir }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Tgl Registrasi</th>
-                                        <td>: {{ \Carbon\Carbon::parse($lokasi->tgl_registrasi)->translatedFormat('d F Y') }}</td>
-                                    </tr>
 
-                                    <!-- Wilayah & Pengelola -->
-                                    <tr>
-                                        <td colspan="2"><h6 class="text-primary mt-3 mb-1">Wilayah & Pengelola</h6></td>
-                                    </tr>
-                                    <tr>
-                                        <th>Area (Kecamatan)</th>
-                                        <td>: {{ $lokasi->area->Kecamatan ?? '-' }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Kelurahan</th>
-                                        <td>: {{ $lokasi->kelurahan->kelurahan ?? '-' }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Korlap</th>
-                                        <td>: {{ $lokasi->korlap->nama ?? '-' }}</td>
-                                    </tr>
-
-                                    <!-- Detail Teknis -->
-                                    <tr>
-                                        <td colspan="2"><h6 class="text-primary mt-3 mb-1">Detail Teknis</h6></td>
-                                    </tr>
-                                    <tr>
-                                        <th>Jenis Lokasi</th>
-                                        <td>: {{ $lokasi->jenis_lokasi }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Kategori</th>
-                                        <td>: {{ $lokasi->kategori }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Sisi</th>
-                                        <td>: {{ $lokasi->sisi ?? '-' }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Waktu Pelayanan</th>
-                                        <td>: {{ $lokasi->waktu_pelayanan }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Hari Buka</th>
-                                        <td>: {{ $lokasi->hari_buka ? $lokasi->hari_buka . ' Hari' : '-' }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Panjang/Luas</th>
-                                        <td>: {{ $lokasi->panjang_luas ?? '-' }}</td>
-                                    </tr>
-
-                                    <!-- Legalitas & Koordinat -->
-                                    <tr>
-                                        <td colspan="2"><h6 class="text-primary mt-3 mb-1">Legalitas & Koordinat</h6></td>
-                                    </tr>
-                                    <tr>
-                                        <th>Dasar Ketetapan</th>
-                                        <td>: {{ $lokasi->dasar_ketetapan ?? '-' }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>No. Ketetapan</th>
-                                        <td>: {{ $lokasi->no_ketetapan ?? '-' }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Tgl Ketetapan</th>
-                                        <td>: {{ $lokasi->tgl_ketetapan ? \Carbon\Carbon::parse($lokasi->tgl_ketetapan)->translatedFormat('d F Y') : '-' }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Koordinat</th>
-                                        <td>: {{ $lokasi->kord_lat }}, {{ $lokasi->kord_long }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Google Maps Link</th>
-                                        <td>: 
-                                            @if($lokasi->google_maps)
-                                                <a href="{{ $lokasi->google_maps }}" target="_blank">{{ $lokasi->google_maps }}</a>
-                                            @else
-                                                -
-                                            @endif
-                                        </td>
-                                    </tr>
-
-                                    <!-- Status & Informasi Tambahan -->
-                                    <tr>
-                                        <td colspan="2"><h6 class="text-primary mt-3 mb-1">Informasi Tambahan</h6></td>
-                                    </tr>
-                                    <tr>
-                                        <th>Pendaftaran</th>
-                                        <td>: {{ $lokasi->pendaftaran ?? '-' }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Status</th>
-                                        <td>
-                                            : <span class="badge bg-light-{{ $lokasi->status === 'Aktif' ? 'success' : 'danger' }}">
-                                                {{ $lokasi->status ?? 'Aktif' }}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>Keterangan</th>
-                                        <td>: {{ $lokasi->keterangan ?? '-' }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                        <!-- Kolom Kanan (Gambar/Foto) -->
-                        <div class="col-md-4">
-                            <div class="card bg-light border-0">
-                                <div class="card-body text-center p-3">
-                                    <h6 class="mb-3 text-start text-primary">Foto Lokasi</h6>
-                                    @if($lokasi->gambar)
-                                        <a href="{{ asset('storage/' . $lokasi->gambar) }}" target="_blank">
-                                            <img src="{{ asset('storage/' . $lokasi->gambar) }}" alt="Foto {{ $lokasi->titik_parkir }}" class="img-fluid rounded shadow-sm" style="max-height: 400px; width: 100%; object-fit: cover;">
-                                        </a>
-                                        <small class="d-block mt-2 text-muted">Klik gambar untuk memperbesar</small>
-                                    @else
-                                        <div class="d-flex flex-column align-items-center justify-content-center bg-white rounded shadow-sm" style="height: 300px;">
-                                            <i class="ti ti-photo text-muted mb-2" style="font-size: 3rem;"></i>
-                                            <span class="text-muted">Belum ada foto lokasi</span>
-                                        </div>
-                                    @endif
+                {{-- Detail Teknis --}}
+                <div class="col-12">
+                    <div class="dl-card">
+                        <div class="dl-card-body">
+                            <div class="dl-section-title"><i class="ti ti-tool"></i> Detail Teknis & Operasional</div>
+                            <div class="row g-4">
+                                <div class="col-6 col-md-3">
+                                    <span class="dl-label">Jenis Lokasi</span>
+                                    <span class="dl-value">{{ $lokasi->jenis_lokasi ?? '-' }}</span>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <span class="dl-label">Kategori</span>
+                                    <span class="dl-value">{{ $lokasi->kategori ?? '-' }}</span>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <span class="dl-label">Sisi Parkir</span>
+                                    <span class="dl-value">{{ $lokasi->sisi ?? '-' }}</span>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <span class="dl-label">Panjang/Luas</span>
+                                    <span class="dl-value">{{ $lokasi->panjang_luas ?? '-' }}</span>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <span class="dl-label">Waktu Pelayanan</span>
+                                    <span class="dl-value"><i class="ti ti-clock me-1 opacity-50"></i> {{ $lokasi->waktu_pelayanan ?? '-' }}</span>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <span class="dl-label">Hari Operasional</span>
+                                    <span class="dl-value"><i class="ti ti-calendar-event me-1 opacity-50"></i> {{ $lokasi->hari_buka ?? '-' }} Hari / Minggu</span>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <span class="dl-label">Keterangan Tambahan</span>
+                                    <span class="dl-value text-muted" style="font-size:0.85rem;">{{ $lokasi->keterangan ?? 'Tidak ada keterangan tambahan.' }}</span>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
 
-                            @if($lokasi->kord_lat && $lokasi->kord_long)
-                            <div class="card bg-light border-0 mt-3 align-items-center">
-                                <div class="card-body w-100 p-3">
-                                    <h6 class="mb-3 text-start text-primary">Peta Lokasi</h6>
-                                    <div class="rounded shadow-sm overflow-hidden" style="height: 300px; width: 100%;">
-                                        <iframe 
-                                            width="100%" 
-                                            height="100%" 
-                                            frameborder="0" 
-                                            style="border:0;"
-                                            src="https://maps.google.com/maps?q={{ $lokasi->kord_lat }},{{ $lokasi->kord_long }}&hl=id&z=15&output=embed"
-                                            allowfullscreen>
-                                        </iframe>
-                                    </div>
-                                    <div class="text-end mt-2">
-                                        <a href="https://maps.google.com/?q={{ $lokasi->kord_lat }},{{ $lokasi->kord_long }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                            <i class="ti ti-map-pin"></i> Buka di Google Maps
-                                        </a>
+                {{-- Legalitas & Koordinat --}}
+                <div class="col-12">
+                    <div class="dl-card">
+                        <div class="dl-card-body">
+                            <div class="dl-section-title"><i class="ti ti-file-certificate"></i> Legalitas & Administrasi</div>
+                            <div class="row g-4">
+                                <div class="col-12 col-md-6 col-lg-4">
+                                    <div class="dl-stat-box">
+                                        <span class="dl-label">Dasar Ketetapan</span>
+                                        <span class="dl-value fw-bold text-dark">{{ $lokasi->dasar_ketetapan ?? '-' }}</span>
                                     </div>
                                 </div>
+                                <div class="col-12 col-md-6 col-lg-4">
+                                    <div class="dl-stat-box">
+                                        <span class="dl-label">Nomor Ketetapan</span>
+                                        <span class="dl-value">{{ $lokasi->no_ketetapan ?? '-' }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6 col-lg-4">
+                                    <div class="dl-stat-box">
+                                        <span class="dl-label">Tanggal Penetapan</span>
+                                        <span class="dl-value">{{ $lokasi->tgl_ketetapan ? \Carbon\Carbon::parse($lokasi->tgl_ketetapan)->translatedFormat('d M Y') : '-' }}</span>
+                                    </div>
+                                </div>                                
                             </div>
-                            @endif
                         </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        {{-- RIGHT COLUMN: Photo + Map --}}
+        <div class="col-12 col-xl-4 order-1 order-xl-2">
+            
+            {{-- Foto Lokasi --}}
+            <div class="dl-card">
+                <div class="dl-card-body">
+                    <div class="dl-section-title"><i class="ti ti-camera"></i> Foto Lokasi</div>
+                    <div class="dl-img-container">
+                        @if($lokasi->gambar)
+                            <a href="{{ asset('storage/' . $lokasi->gambar) }}" target="_blank">
+                                <img src="{{ asset('storage/' . $lokasi->gambar) }}" 
+                                     onerror="this.onerror=null; this.src='https://placehold.co/600x400?text=Foto+Tidak+Ditemukan';"
+                                     alt="Foto {{ $lokasi->titik_parkir }}">
+                            </a>
+                        @else
+                            <div class="d-flex flex-column align-items-center justify-content-center h-100 bg-light">
+                                <i class="ti ti-photo-off text-muted mb-2" style="font-size: 3rem;"></i>
+                                <span class="text-muted small">Belum ada foto lokasi</span>
+                            </div>
+                        @endif
+                    </div>
+                    <div class="text-center">
+                        <small class="text-muted" style="font-size: 0.72rem;">
+                            <i class="ti ti-info-circle me-1"></i> Klik gambar untuk memvisualisasikan dalam ukuran penuh.
+                        </small>
                     </div>
                 </div>
             </div>
+
+            {{-- Peta Lokasi --}}
+            @if($lokasi->kord_lat && $lokasi->kord_long)
+            <div class="dl-card">
+                <div class="dl-card-body">
+                    <div class="dl-section-title"><i class="ti ti-map-pin"></i> Peta Lokasi</div>
+                    <div class="dl-map-container shadow-sm mb-3">
+                        <iframe 
+                            width="100%" 
+                            height="100%" 
+                            frameborder="0" 
+                            style="border:0;"
+                            src="https://maps.google.com/maps?q={{ $lokasi->kord_lat }},{{ $lokasi->kord_long }}&hl=id&z=15&output=embed"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                    <a href="https://maps.google.com/?q={{ $lokasi->kord_lat }},{{ $lokasi->kord_long }}" target="_blank" class="btn btn-primary w-100 shadow-sm" style="font-size:0.85rem;">
+                        <i class="ti ti-navigation me-1"></i> Petunjuk Arah
+                    </a>
+                </div>
+            </div>
+            @endif
+
         </div>
+
     </div>
 </div>
+

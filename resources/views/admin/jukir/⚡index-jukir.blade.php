@@ -60,7 +60,13 @@ new class extends Component {
             })
             ->when($this->ketJukirFilter, function($q) {
                 $q->where('ket_jukir', $this->ketJukirFilter);
-            });
+            })
+            ->orderByRaw("CASE 
+                WHEN ket_jukir = 'Active' THEN 1 
+                WHEN ket_jukir = 'Pending' THEN 2 
+                ELSE 3 
+            END")
+            ->orderBy('nama_jukir', 'asc');
 
         $jukirs = $query->paginate($this->perPage);
         $areas = Area::orderBy('Kecamatan', 'asc')->get();

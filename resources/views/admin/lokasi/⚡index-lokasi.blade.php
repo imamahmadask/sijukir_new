@@ -83,6 +83,8 @@ new class extends Component {
                 ->when($this->isActiveFilter !== '', function ($query) {
                     $query->where('is_active', $this->isActiveFilter);
                 })
+                ->orderBy('is_active', 'desc')
+                ->orderBy('titik_parkir', 'asc')
                 ->paginate($this->perPage),
             'areas' => Area::orderBy('Kecamatan', 'asc')->get(),
             'korlaps' => Korlap::orderBy('nama', 'asc')->get()
