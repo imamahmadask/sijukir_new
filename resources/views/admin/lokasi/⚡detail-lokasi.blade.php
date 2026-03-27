@@ -152,21 +152,17 @@ new class extends Component {
                         <div class="dl-card-body">
                             <div class="dl-section-title"><i class="ti ti-map-2"></i> Informasi Utama & Alamat</div>
                             <div class="row g-4">
-                                <div class="col-12 col-md-6">
+                                <div class="col-12 col-md-4">
                                     <span class="dl-label">Nama Titik Parkir</span>
                                     <span class="dl-value bold" style="font-size: 1.1rem;">{{ $lokasi->titik_parkir }}</span>
                                 </div>
-                                <div class="col-12 col-md-6">
+                                <div class="col-12 col-md-4">
                                     <span class="dl-label">Lokasi (Alamat)</span>
                                     <span class="dl-value">{{ $lokasi->lokasi_parkir }}</span>
                                 </div>
                                 <div class="col-6 col-sm-4">
-                                    <span class="dl-label">Area (Kecamatan)</span>
-                                    <span class="dl-value">{{ $lokasi->area->Kecamatan ?? '-' }}</span>
-                                </div>
-                                <div class="col-6 col-sm-4">
-                                    <span class="dl-label">Kelurahan</span>
-                                    <span class="dl-value">{{ $lokasi->kelurahan->kelurahan ?? '-' }}</span>
+                                    <span class="dl-label">Kelurahan & Kecamatan</span>
+                                    <span class="dl-value">{{ $lokasi->kelurahan->kelurahan ?? '-' }}, {{ $lokasi->area->Kecamatan ?? '-' }}</span>
                                 </div>
                                 <div class="col-6 col-sm-4">
                                     <span class="dl-label">Tanggal Registrasi</span>
@@ -193,31 +189,31 @@ new class extends Component {
                         <div class="dl-card-body">
                             <div class="dl-section-title"><i class="ti ti-tool"></i> Detail Teknis & Operasional</div>
                             <div class="row g-4">
-                                <div class="col-6 col-md-3">
+                                <div class="col-6 col-md-4">
                                     <span class="dl-label">Jenis Lokasi</span>
                                     <span class="dl-value">{{ $lokasi->jenis_lokasi ?? '-' }}</span>
                                 </div>
-                                <div class="col-6 col-md-3">
+                                <div class="col-6 col-md-4">
                                     <span class="dl-label">Kategori</span>
                                     <span class="dl-value">{{ $lokasi->kategori ?? '-' }}</span>
                                 </div>
-                                <div class="col-6 col-md-3">
+                                <div class="col-6 col-md-4">
                                     <span class="dl-label">Sisi Parkir</span>
                                     <span class="dl-value">{{ $lokasi->sisi ?? '-' }}</span>
                                 </div>
-                                <div class="col-6 col-md-3">
+                                <div class="col-6 col-md-4">
                                     <span class="dl-label">Panjang/Luas</span>
                                     <span class="dl-value">{{ $lokasi->panjang_luas ?? '-' }}</span>
                                 </div>
-                                <div class="col-6 col-md-3">
+                                <div class="col-6 col-md-4">
                                     <span class="dl-label">Waktu Pelayanan</span>
                                     <span class="dl-value"><i class="ti ti-clock me-1 opacity-50"></i> {{ $lokasi->waktu_pelayanan ?? '-' }}</span>
                                 </div>
-                                <div class="col-6 col-md-3">
+                                <div class="col-6 col-md-4">
                                     <span class="dl-label">Hari Operasional</span>
                                     <span class="dl-value"><i class="ti ti-calendar-event me-1 opacity-50"></i> {{ $lokasi->hari_buka ?? '-' }} Hari / Minggu</span>
                                 </div>
-                                <div class="col-12 col-md-6">
+                                <div class="col-12 col-md-12">
                                     <span class="dl-label">Keterangan Tambahan</span>
                                     <span class="dl-value text-muted" style="font-size:0.85rem;">{{ $lokasi->keterangan ?? 'Tidak ada keterangan tambahan.' }}</span>
                                 </div>
