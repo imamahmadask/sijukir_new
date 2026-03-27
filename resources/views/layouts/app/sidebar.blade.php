@@ -20,8 +20,8 @@
                     <label>Data</label>
                     <i class="ti ti-dashboard"></i>
                 </li>
-                <li class="pc-item">
-                    <a href="../elements/bc_typography.html" class="pc-link">
+                <li class="pc-item {{ request()->routeIs('notification.index') ? 'active' : '' }}">
+                    <a href="{{ route('notification.index') }}" class="pc-link">
                         <span class="pc-micon"><i class="ti ti-bell"></i></span>
                         <span class="pc-mtext">Notifikasi</span>
                     </a>

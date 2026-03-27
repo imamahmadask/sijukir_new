@@ -71,4 +71,9 @@ class Jukir extends Model
     {
         return $this->hasMany(PembantuJukir::class, 'jukir_id');
     }
+
+    public function receiveNotifApi()
+    {
+        return $this->hasMany(ReceiveNotifApi::class);
+    }
 }

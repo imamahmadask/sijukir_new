@@ -14,6 +14,7 @@ Route::middleware(['cekRole:admin,user,korlap,guest'])->group(function () {
     Route::livewire('/admin/transaksi/non-tunai', 'admin::transaksi-non-tunai.index-transaksi-non-tunai')->name('transaksi.non-tunai.index');
     Route::livewire('/admin/berlangganan', 'admin::berlangganan.index-berlangganan')->name('berlangganan.index');
     Route::livewire('/admin/insidentil', 'admin::insidentil.index-insidentil')->name('insidentil.index');
+    Route::livewire('/admin/notification', 'admin::notification.index-notification')->name('notification.index');
     Route::livewire('/admin/lokasi/{id}/detail', 'admin::lokasi.detail-lokasi')->name('lokasi.detail');
     Route::livewire('/admin/jukir/{id}/detail', 'admin::jukir.detail-jukir')->name('jukir.detail');
 });

@@ -31,4 +31,9 @@ class Merchant extends Model
     {
         return $this->hasOne(Jukir::class);
     }
+
+    public function receiveNotifApi()
+    {
+        return $this->hasMany(ReceiveNotifApi::class);
+    }
 }
