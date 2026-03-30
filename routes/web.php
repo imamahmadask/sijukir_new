@@ -17,6 +17,7 @@ Route::middleware(['cekRole:admin,user,korlap,guest'])->group(function () {
     Route::livewire('/admin/notification', 'admin::notification.index-notification')->name('notification.index');
     Route::livewire('/admin/lokasi/{id}/detail', 'admin::lokasi.detail-lokasi')->name('lokasi.detail');
     Route::livewire('/admin/jukir/{id}/detail', 'admin::jukir.detail-jukir')->name('jukir.detail');
+    Route::livewire('/admin/analisa/jukir', 'admin::analisa.index-analisa-jukir')->name('analisa.jukir.index');
 });
 
 Route::middleware(['cekRole:admin'])->group(function () {
