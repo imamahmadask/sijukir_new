@@ -31,14 +31,10 @@ new class extends Component
         $query = SummaryJukirMonth::with(['jukir.merchant', 'jukir.lokasi.korlap'])
             ->where('bulan', $month)
             ->where('tahun', $year)
-            ->whereHas('jukir', function($q) {
-                $q->where('ket_jukir', 'Active')
-                  ->where('status', 'Non-Tunai');
-            })
+            ->where('status_jukir', 'Active')
+            ->where('tipe_jukir', 'Non-Tunai')
             ->when($this->korlapId, function($q) {
-                $q->whereHas('jukir.lokasi', function($q2) {
-                    $q2->where('korlap_id', $this->korlapId);
-                });
+                $q->where('korlap_id', $this->korlapId);
             })
             ->when($this->search, function($q) {
                 $q->whereHas('jukir', function($q2) {

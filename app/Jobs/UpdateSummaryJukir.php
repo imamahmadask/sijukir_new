@@ -58,14 +58,15 @@ class UpdateSummaryJukir implements ShouldQueue
             // 1. Data Summary Bulanan
             $non_tunai_data = $this->getNonTunaiData($jukir);
             $tunai = $this->getTunaiData();
-            $potensi = $this->calculatePotensi($jukir);
+            $is_past = Carbon::createFromDate($this->tahun, $this->bulan, 1)->endOfMonth()->isBefore(now()->startOfMonth());
+            $potensi = $this->calculatePotensi($jukir, $is_past);
 
             $kompensasiBulan = HistoriJukir::where('jukir_id', $this->jukirId)
                 ->where('bulan_libur', $this->bulan)
                 ->where('tahun_libur', $this->tahun)
                 ->sum('kompensasi');
 
-            $summaryData = $this->prepareSummaryData($non_tunai_data, $tunai, $potensi, $kompensasiBulan);
+            $summaryData = $this->prepareSummaryData($jukir, $non_tunai_data, $tunai, $potensi, $kompensasiBulan, $is_past);
 
             // Perbaiki N+1 / whereHas yang lambat menggunakan updateOrCreate
             SummaryJukirMonth::updateOrCreate(
@@ -164,13 +165,26 @@ class UpdateSummaryJukir implements ShouldQueue
             ->sum('jumlah_transaksi');
     }
 
-    private function calculatePotensi($jukir)
+    private function calculatePotensi($jukir, $is_past = false)
     {
         $potensi_bulanan = ($jukir->potensi_bulanan_upl > 0) ? $jukir->potensi_bulanan_upl : $jukir->potensi_bulanan;
+
+        if ($is_past) {
+            $existing = SummaryJukirMonth::where('jukir_id', $this->jukirId)
+                ->where('bulan', $this->bulan)
+                ->where('tahun', $this->tahun)
+                ->first();
+
+            // Jika record sudah ada (historis), gunakan potensi penuh kecuali status historisnya memang 'Non Active'
+            if ($existing) {
+                return ($existing->status_jukir == 'Non Active') ? 0 : $potensi_bulanan;
+            }
+        }
+
         return ($jukir->ket_jukir == 'Non Active') ? 0 : $potensi_bulanan;
     }
 
-    private function prepareSummaryData($non_tunai_data, $tunai, $potensi, $kompensasiBulan)
+    private function prepareSummaryData($jukir, $non_tunai_data, $tunai, $potensi, $kompensasiBulan, $is_past = false)
     {
         $total_non_tunai = $non_tunai_data->total ?? 0;
         $jumlah_non_tunai = $non_tunai_data->jumlah ?? 0;
@@ -180,7 +194,7 @@ class UpdateSummaryJukir implements ShouldQueue
             $kurangSetor = 0; // Konsisten dengan cara perhitungan tahunan
         }
 
-        return [
+        $data = [
             'potensi'      => $potensi,
             'jml_trx'      => $jumlah_non_tunai,
             'tunai'        => $tunai,
@@ -189,6 +203,21 @@ class UpdateSummaryJukir implements ShouldQueue
             'kompensasi'   => $kompensasiBulan,
             'kurang_setor' => $kurangSetor
         ];
+
+        // Jika ini bulan lalu, kita hanya update snapshot jika belum ada datanya.
+        // Jika sudah ada, kita pertahankan snapshot lama agar tidak berubah saat jukir dimutasi/dinonaktifkan
+        $existing = SummaryJukirMonth::where('jukir_id', $this->jukirId)
+            ->where('bulan', $this->bulan)
+            ->where('tahun', $this->tahun)
+            ->first();
+
+        if (!$is_past || !$existing) {
+            $data['status_jukir'] = $jukir->ket_jukir;
+            $data['tipe_jukir']   = $jukir->status;
+            $data['korlap_id']    = $jukir->lokasi?->korlap_id;
+        }
+
+        return $data;
     }
 
     private function getBayarKurangSetor()

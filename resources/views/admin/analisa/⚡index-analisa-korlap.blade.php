@@ -48,15 +48,11 @@ new class extends Component
         $monthlySummaries = SummaryJukirMonth::with(['jukir.lokasi'])
             ->where('bulan', $month)
             ->where('tahun', $year)
-            ->whereHas('jukir', function($q) {
-                $q->where('ket_jukir', 'Active')
-                  ->where('status', 'Non-Tunai');
-            })
+            ->where('status_jukir', 'Active')
+            ->where('tipe_jukir', 'Non-Tunai')
             ->get();
 
-        $summariesByKorlap = $monthlySummaries->groupBy(function($item) {
-            return $item->jukir->lokasi->korlap_id ?? 0;
-        });
+        $summariesByKorlap = $monthlySummaries->groupBy('korlap_id');
 
         $this->hijau = 0;
         $this->kuning = 0;
