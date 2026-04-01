@@ -49,7 +49,7 @@ new class extends Component {
 
         $summaryMonths = \App\Models\SummaryJukirMonth::where('jukir_id', $this->jukir->id)
             ->where('tahun', $this->selectedYear)
-            ->orderBy('bulan', 'desc')
+            ->orderBy('bulan', 'asc')
             ->get();
 
         $summaryYears = \App\Models\SummaryJukirMonth::where('jukir_id', $this->jukir->id)

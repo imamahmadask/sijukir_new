@@ -55,16 +55,16 @@ new class extends Component
 
         // Menghitung jumlah jukir berdasarkan kondisi kurang_setor
         $this->hijau = $summaries->filter(function ($item) {
-            return ($item->total + $item->kompensasi) >= $item->potensi && $item->potensi > 0;
+            return ($item->non_tunai + $item->kompensasi) >= $item->potensi && $item->potensi > 0;
         })->count();
 
         $this->kuning = $summaries->filter(function ($item) {
-            $totalSetor = $item->total + $item->kompensasi;
+            $totalSetor = $item->non_tunai + $item->kompensasi;
             return $totalSetor < $item->potensi && $totalSetor > 0;
         })->count();
 
         $this->merah = $summaries->filter(function ($item) {
-            $totalSetor = $item->total + $item->kompensasi;
+            $totalSetor = $item->non_tunai + $item->kompensasi;
             return $totalSetor <= 0;
         })->count();
 
@@ -106,8 +106,8 @@ new class extends Component
         </div>
     </div>
     
-    <div class="row">
-        <div class="col-3">
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-sm-6 col-xl-3">
             <div class="card shadow-sm border-0">
                 <div class="card-body">
                     <h6 class="text-success mb-1">Hijau</h6>
@@ -116,7 +116,7 @@ new class extends Component
                 </div>
             </div>
         </div>
-        <div class="col-3">
+        <div class="col-12 col-sm-6 col-xl-3">
             <div class="card shadow-sm border-0">
                 <div class="card-body">
                     <h6 class="text-warning mb-1">Kuning</h6>
@@ -125,7 +125,7 @@ new class extends Component
                 </div>
             </div>
         </div>
-        <div class="col-3">
+        <div class="col-12 col-sm-6 col-xl-3">
             <div class="card shadow-sm border-0">
                 <div class="card-body">
                     <h6 class="text-danger mb-1">Merah</h6>
@@ -134,7 +134,7 @@ new class extends Component
                 </div>
             </div>
         </div>
-        <div class="col-3">
+        <div class="col-12 col-sm-6 col-xl-3">
             <div class="card shadow-sm border-0 bg-primary text-white">
                 <div class="card-body">
                     <h6 class="text-white-50 mb-1">Total Jukir</h6>
@@ -143,7 +143,9 @@ new class extends Component
                 </div>
             </div>
         </div>
+    </div>
 
+    <div class="row">        
         <div class="col-12">
             <div class="card tbl-card">
                 <div class="card-header bg-transparent border-0 px-4 pb-3 pt-3">
@@ -171,7 +173,7 @@ new class extends Component
                 </div>
 
                 <div class="card-body p-0">
-                    <div class="table-responsive">
+                    <div class="table-responsive scroll-y" style="max-height: 500px;">
                         <table class="table table-hover table-borderless mb-0 align-middle">
                             <thead class="bg-light">
                                 <tr>
@@ -216,7 +218,7 @@ new class extends Component
                                             Rp. {{ number_format($item->potensi ?? 0, 0, ',', '.') }}
                                         </td>
                                         <td class="text-end">
-                                            Rp. {{ number_format($item->total ?? 0, 0, ',', '.') }}
+                                            Rp. {{ number_format($item->non_tunai ?? 0, 0, ',', '.') }}
                                         </td>
                                         <td class="text-end">
                                             Rp. {{ number_format($item->kompensasi ?? 0, 0, ',', '.') }}

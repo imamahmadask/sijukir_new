@@ -19,4 +19,9 @@ class Korlap extends Model
         'created_by',
         'edited_by',
     ];
+
+    public function lokasis()
+    {
+        return $this->hasMany(Lokasi::class);
+    }
 }

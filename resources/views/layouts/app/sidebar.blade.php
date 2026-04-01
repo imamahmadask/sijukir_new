@@ -31,7 +31,7 @@
                         Analisa</span><span class="pc-arrow"><i data-feather="chevron-right"></i></span></a>
                     <ul class="pc-submenu">
                         <li class="pc-item"><a class="pc-link" href="{{ route('analisa.jukir.index') }}">Analisa Jukir</a></li>
-                        <li class="pc-item"><a class="pc-link" href="#!">Analisa Bulanan</a></li>
+                        <li class="pc-item"><a class="pc-link" href="{{ route('analisa.korlap.index') }}">Analisa Bulanan</a></li>
                         <li class="pc-item"><a class="pc-link" href="#!">Analisa Tahunan</a></li>
                         <li class="pc-item"><a class="pc-link" href="#!">Analisa Potensi</a></li>
                         <li class="pc-item"><a class="pc-link" href="#!">Analisa Titik</a></li>                                                                                        
