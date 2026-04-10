@@ -59,14 +59,15 @@ class UpdateSummaryJukir implements ShouldQueue
             $non_tunai_data = $this->getNonTunaiData($jukir);
             $tunai = $this->getTunaiData();
             $is_past = Carbon::createFromDate($this->tahun, $this->bulan, 1)->endOfMonth()->isBefore(now()->startOfMonth());
-            $potensi = $this->calculatePotensi($jukir, $is_past);
+            $calculated_status = null;
+            $potensi = $this->calculatePotensi($jukir, $is_past, $calculated_status);
 
             $kompensasiBulan = HistoriJukir::where('jukir_id', $this->jukirId)
                 ->where('bulan_libur', $this->bulan)
                 ->where('tahun_libur', $this->tahun)
                 ->sum('kompensasi');
 
-            $summaryData = $this->prepareSummaryData($jukir, $non_tunai_data, $tunai, $potensi, $kompensasiBulan, $is_past);
+            $summaryData = $this->prepareSummaryData($jukir, $non_tunai_data, $tunai, $potensi, $kompensasiBulan, $is_past, $calculated_status);
 
             // Perbaiki N+1 / whereHas yang lambat menggunakan updateOrCreate
             SummaryJukirMonth::updateOrCreate(
@@ -165,26 +166,44 @@ class UpdateSummaryJukir implements ShouldQueue
             ->sum('jumlah_transaksi');
     }
 
-    private function calculatePotensi($jukir, $is_past = false)
+    private function getStatusJukirAtMonth($jukir, $existing)
+    {
+        // Jika historisnya memang 'Non Active', pertahankan
+        if ($existing && $existing->status_jukir == 'Non Active') {
+            return 'Non Active';
+        }
+
+        $status_jukir = $jukir->ket_jukir;
+        if ($jukir->ket_jukir == 'Non Active' && $jukir->tgl_nonactive) {
+            $month_now = Carbon::createFromDate($this->tahun, $this->bulan, 1)->format('Y-m');
+            $month_nonactive = Carbon::parse($jukir->tgl_nonactive)->format('Y-m');
+            if ($month_now < $month_nonactive) {
+                $status_jukir = 'Active';
+            } else {
+                $status_jukir = 'Non Active';
+            }
+        }
+        return $status_jukir;
+    }
+
+    private function calculatePotensi($jukir, $is_past = false, &$calculated_status = null)
     {
         $potensi_bulanan = ($jukir->potensi_bulanan_upl > 0) ? $jukir->potensi_bulanan_upl : $jukir->potensi_bulanan;
 
+        $existing = null;
         if ($is_past) {
             $existing = SummaryJukirMonth::where('jukir_id', $this->jukirId)
                 ->where('bulan', $this->bulan)
                 ->where('tahun', $this->tahun)
                 ->first();
-
-            // Jika record sudah ada (historis), gunakan potensi penuh kecuali status historisnya memang 'Non Active'
-            if ($existing) {
-                return ($existing->status_jukir == 'Non Active') ? 0 : $potensi_bulanan;
-            }
         }
 
-        return ($jukir->ket_jukir == 'Non Active') ? 0 : $potensi_bulanan;
+        $calculated_status = $this->getStatusJukirAtMonth($jukir, $existing);
+
+        return ($calculated_status == 'Non Active') ? 0 : $potensi_bulanan;
     }
 
-    private function prepareSummaryData($jukir, $non_tunai_data, $tunai, $potensi, $kompensasiBulan, $is_past = false)
+    private function prepareSummaryData($jukir, $non_tunai_data, $tunai, $potensi, $kompensasiBulan, $is_past = false, $calculated_status = null)
     {
         $total_non_tunai = $non_tunai_data->total ?? 0;
         $jumlah_non_tunai = $non_tunai_data->jumlah ?? 0;
@@ -204,15 +223,20 @@ class UpdateSummaryJukir implements ShouldQueue
             'kurang_setor' => $kurangSetor
         ];
 
-        // Jika ini bulan lalu, kita hanya update snapshot jika belum ada datanya.
-        // Jika sudah ada, kita pertahankan snapshot lama agar tidak berubah saat jukir dimutasi/dinonaktifkan
+        // Jika ini bulan lalu, kita hanya update snapshot tipe/lokasi jika belum ada datanya.
+        // Jika sudah ada, kita pertahankan snapshot tipe lama agar tidak berubah saat jukir dimutasi/dinonaktifkan
         $existing = SummaryJukirMonth::where('jukir_id', $this->jukirId)
             ->where('bulan', $this->bulan)
             ->where('tahun', $this->tahun)
             ->first();
 
-        if (!$is_past || !$existing) {
+        if ($calculated_status) {
+            $data['status_jukir'] = $calculated_status;
+        } else {
             $data['status_jukir'] = $jukir->ket_jukir;
+        }
+
+        if (!$is_past || !$existing) {
             $data['tipe_jukir']   = $jukir->status;
             $data['korlap_id']    = $jukir->lokasi?->korlap_id;
         }

@@ -42,7 +42,7 @@ class UpdateSummaryKorlap implements ShouldQueue
                      END) as Hijau"),
             DB::raw("COUNT(CASE
                         WHEN (summary_jukir_month.non_tunai + COALESCE(summary_jukir_month.kompensasi, 0)) < summary_jukir_month.potensi
-                             AND summary_jukir_month.non_tunai > 0
+                             AND (summary_jukir_month.non_tunai + COALESCE(summary_jukir_month.kompensasi, 0)) > 0
                         THEN 1
                      END) as Kuning"),
             DB::raw("COUNT(CASE
@@ -55,7 +55,7 @@ class UpdateSummaryKorlap implements ShouldQueue
                      END) / NULLIF(COUNT(jukirs.id), 0) * 100) as PersentaseHijau"),
             DB::raw("(COUNT(CASE
                         WHEN (summary_jukir_month.non_tunai + COALESCE(summary_jukir_month.kompensasi, 0)) < summary_jukir_month.potensi
-                             AND summary_jukir_month.non_tunai > 0
+                             AND (summary_jukir_month.non_tunai + COALESCE(summary_jukir_month.kompensasi, 0)) > 0
                         THEN 1
                      END) / NULLIF(COUNT(jukirs.id), 0) * 100) as PersentaseKuning"),
             DB::raw("(COUNT(CASE
@@ -70,7 +70,8 @@ class UpdateSummaryKorlap implements ShouldQueue
         ->leftJoin('summary_jukir_month', 'jukirs.id', 'summary_jukir_month.jukir_id')
         ->where('summary_jukir_month.tahun', $this->tahun)
         ->where('summary_jukir_month.bulan', $this->bulan)
-        ->where('jukirs.ket_jukir', 'Active')
+        ->where('summary_jukir_month.status_jukir', 'Active')
+        ->where('summary_jukir_month.tipe_jukir', 'Non-Tunai')
         ->whereNotNull('korlaps.id')
         ->groupBy('korlaps.id', 'areas.Kecamatan')
         ->orderByDesc('PersentaseHijau')

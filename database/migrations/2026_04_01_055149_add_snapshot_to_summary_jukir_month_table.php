@@ -12,9 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('summary_jukir_month', function (Blueprint $table) {
-            $table->string('status_jukir')->default('Active')->after('jukir_id');
-            $table->string('tipe_jukir')->default('Non-Tunai')->after('status_jukir');
-            $table->integer('korlap_id')->nullable()->after('tipe_jukir');
+            $table->string('ket_jukir')->nullable()->default('Active')->after('kurang_setor');
         });
     }
 
@@ -24,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('summary_jukir_month', function (Blueprint $table) {
-            $table->dropColumn(['status_jukir', 'tipe_jukir', 'korlap_id']);
+            $table->dropColumn('ket_jukir');
         });
     }
 };

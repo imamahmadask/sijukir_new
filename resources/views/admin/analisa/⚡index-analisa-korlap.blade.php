@@ -1,7 +1,7 @@
 <?php
 
 use Livewire\Component;
-use App\Models\SummaryJukirMonth;
+use App\Models\SummaryKorlap;
 use App\Models\Korlap;
 use App\Models\Area;
 
@@ -30,91 +30,28 @@ new class extends Component
         $year = (int)date('Y', strtotime($this->periode));
         $month = (int)date('m', strtotime($this->periode));
 
-        $korlapQuery = Korlap::query()
-            ->with(['lokasis.area'])
+        $areas = Area::orderBy('Kecamatan', 'asc')->get();
+
+        $korlapStatsQuery = SummaryKorlap::with(['korlap.lokasis.area'])
+            ->where('bulan', $month)
+            ->where('tahun', $year)
             ->when($this->areaId, function ($q) {
-                $q->whereHas('lokasis', function($q2) {
+                $q->whereHas('korlap.lokasis', function($q2) {
                     $q2->where('area_id', $this->areaId);
                 });
             })
             ->when($this->search, function ($q) {
-                $q->where('nama', 'like', '%' . $this->search . '%');
-            })
-            ->orderBy('nama', 'asc');
-            
-        $korlaps = $korlapQuery->get();
-        $areas = Area::orderBy('Kecamatan', 'asc')->get();
+                $q->whereHas('korlap', function($q2) {
+                    $q2->where('nama', 'like', '%' . $this->search . '%');
+                });
+            });
 
-        $monthlySummaries = SummaryJukirMonth::with(['jukir.lokasi'])
-            ->where('bulan', $month)
-            ->where('tahun', $year)
-            ->where('status_jukir', 'Active')
-            ->where('tipe_jukir', 'Non-Tunai')
-            ->get();
+        $korlapStatsList = $korlapStatsQuery->get();
 
-        $summariesByKorlap = $monthlySummaries->groupBy('korlap_id');
-
-        $this->hijau = 0;
-        $this->kuning = 0;
-        $this->merah = 0;
-
-        $korlapStatsList = $korlaps->map(function($korlap) use ($summariesByKorlap) {
-            $korlapSummaries = $summariesByKorlap->get($korlap->id, collect());
-            
-            $h = $korlapSummaries->filter(function ($item) {
-                return ($item->non_tunai + $item->kompensasi) >= $item->potensi && $item->potensi > 0;
-            })->count();
-
-            $k = $korlapSummaries->filter(function ($item) {
-                $totalSetor = $item->non_tunai + $item->kompensasi;
-                return $totalSetor < $item->potensi && $totalSetor > 0;
-            })->count();
-
-            $m = $korlapSummaries->filter(function ($item) {
-                $totalSetor = $item->non_tunai + $item->kompensasi;
-                return $totalSetor <= 0;
-            })->count();
-            
-            $t = $h + $k + $m;
-            
-            $this->hijau += $h;
-            $this->kuning += $k;
-            $this->merah += $m;
-            
-            return (object)[
-                'korlap' => $korlap,
-                'hijau' => $h,
-                'kuning' => $k,
-                'merah' => $m,
-                'total' => $t,
-                'ach_hijau' => $t > 0 ? number_format(($h / $t) * 100, 2) : '0.00',
-                'ach_kuning' => $t > 0 ? number_format(($k / $t) * 100, 2) : '0.00',
-                'ach_merah' => $t > 0 ? number_format(($m / $t) * 100, 2) : '0.00',
-                'raw_hijau' => $t > 0 ? ($h / $t) * 100 : 0,
-                'raw_kuning' => $t > 0 ? ($k / $t) * 100 : 0,
-                'raw_merah' => $t > 0 ? ($m / $t) * 100 : 0,
-            ];
-        });
-
-        // Mengurutkan secara sekuensial: Persentase Hijau > Kuning > Merah
-        $korlapStatsList = $korlapStatsList->sort(function ($a, $b) {
-            // 1. Hijau persentase terbesar
-            if ($a->raw_hijau != $b->raw_hijau) {
-                return $b->raw_hijau <=> $a->raw_hijau;
-            }
-            // 2. Jika Hijau sama, Kuning persentase terbesar
-            if ($a->raw_kuning != $b->raw_kuning) {
-                return $b->raw_kuning <=> $a->raw_kuning;
-            }
-            // 3. Jika Kuning juga sama, Merah persentase terkecil
-            if ($a->raw_merah != $b->raw_merah) {
-                return $a->raw_merah <=> $b->raw_merah;
-            }
-            // 4. Jika semua persentase sama persis, urutkan berdasarkan jumlah jukir terbanyak
-            return $b->total <=> $a->total;
-        })->values();
-
-        $this->total = $this->hijau + $this->kuning + $this->merah;
+        $this->hijau = $korlapStatsList->sum('hijau');
+        $this->kuning = $korlapStatsList->sum('kuning');
+        $this->merah = $korlapStatsList->sum('merah');
+        $this->total = $korlapStatsList->sum('jml_jukir');
 
         if($this->total > 0){
             $this->ach_hijau = number_format(($this->hijau / $this->total) * 100, 2);
@@ -125,6 +62,24 @@ new class extends Component
             $this->ach_kuning = number_format(0, 2);
             $this->ach_merah = number_format(0, 2);
         }
+
+        // Mengurutkan secara sekuensial: Persentase Hijau > Kuning > Merah
+        $korlapStatsList = $korlapStatsList->sort(function ($a, $b) {
+            // 1. Hijau persentase terbesar
+            if ($a->ach_hijau != $b->ach_hijau) {
+                return $b->ach_hijau <=> $a->ach_hijau;
+            }
+            // 2. Jika Hijau sama, Kuning persentase terbesar
+            if ($a->ach_kuning != $b->ach_kuning) {
+                return $b->ach_kuning <=> $a->ach_kuning;
+            }
+            // 3. Jika Kuning juga sama, Merah persentase terkecil
+            if ($a->ach_merah != $b->ach_merah) {
+                return $a->ach_merah <=> $b->ach_merah;
+            }
+            // 4. Jika semua persentase sama persis, urutkan berdasarkan jumlah jukir terbanyak
+            return $b->jml_jukir <=> $a->jml_jukir;
+        })->values();
 
         return $this->view()->title('Analisa Bulanan Korlap')->with([
             'korlapStatsList' => $korlapStatsList,
@@ -249,7 +204,7 @@ new class extends Component
                                         </td>
                                         <td class="text-center">
                                             <span class="badge bg-light-primary text-primary fs-6">
-                                                {{ $item->non_tunai }}
+                                                {{ $item->jml_jukir }}
                                             </span>
                                         </td>
                                         <td class="text-center">
@@ -265,7 +220,7 @@ new class extends Component
                                             <small class="text-muted" style="font-size: 0.7em">{{ $item->ach_merah }}%</small>
                                         </td>
                                         <td style="width: 200px">
-                                            @if($item->non_tunai > 0)
+                                            @if($item->jml_jukir > 0)
                                                 <div class="progress" style="height: 10px;">
                                                     <div class="progress-bar bg-success" role="progressbar" style="width: {{ $item->ach_hijau }}%" aria-valuenow="{{ $item->ach_hijau }}" aria-valuemin="0" aria-valuemax="100"></div>
                                                     <div class="progress-bar bg-warning" role="progressbar" style="width: {{ $item->ach_kuning }}%" aria-valuenow="{{ $item->ach_kuning }}" aria-valuemin="0" aria-valuemax="100"></div>
